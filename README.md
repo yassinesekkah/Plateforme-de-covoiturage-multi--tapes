@@ -25,6 +25,7 @@ ou la totalite d'un trajet.
 - Gestion centralisee des erreurs avec ProblemDetail.
 - Endpoints techniques de verification disponibles avec le profil `test-errors`.
 - Creation d'un conducteur avec validation des donnees et controle d'unicite.
+- Consultation, liste, recherche par nom ou email et modification du profil conducteur.
 - Tests unitaires du service conducteur et du traitement des contraintes SQL.
 
 Les fonctionnalites metier seront ajoutees progressivement.
@@ -119,8 +120,9 @@ Pour lancer uniquement les tests unitaires sans PostgreSQL :
 .\mvnw.cmd "-Dtest=ConducteurServiceImplTest,GlobalExceptionHandlerTest" test
 ```
 
-Les 3 tests de ConducteurServiceImpl verifient la creation valide,
-le refus d'un email existant et le refus d'un permis existant.
+Les 13 tests de ConducteurServiceImpl couvrent la creation et les doublons,
+la liste avec ou sans resultats, la recherche et le mot-cle vide,
+ainsi que la modification, le proprietaire, le profil absent et les doublons.
 Les 2 tests de GlobalExceptionHandler simulent les erreurs SQL :
 23505 retourne 409, une autre erreur de contrainte retourne 500.
 Ces simulations ne constituent pas un test de concurrence reelle en base.
@@ -188,6 +190,67 @@ Une valeur devant etre unique est deja utilisee.
 
 La collection reste sauvegardee dans Postman. Son export dans le depot est prevu
 apres l'ajout des autres fonctionnalites.
+
+## Consulter et rechercher les conducteurs
+
+Ces endpoints fonctionnent sans le profil `test-errors` :
+
+| Methode | Chemin | Resultat |
+|---|---|---|
+| GET | /api/conducteurs | 200 et liste des conducteurs |
+| GET | /api/conducteurs/{id} | 200 et profil, ou 404 si absent |
+| GET | /api/conducteurs/search?keyword=Alami | 200 et liste des correspondances |
+
+La recherche porte sur `lastName` ou `email`. Elle accepte une partie du texte,
+ignore la casse et retire les espaces au debut et a la fin du mot-cle.
+Un mot-cle absent, vide ou compose uniquement d'espaces retourne 400.
+Une liste ou une recherche sans resultat retourne 200 avec `[]`.
+Un identifiant non numerique retourne 400. Aucun tri particulier n'est garanti.
+
+## Modifier un profil conducteur
+
+```text
+PUT http://localhost:8080/api/conducteurs/1
+Content-Type: application/json
+X-Conducteur-Id: 1
+```
+
+Remplacer `1` par l'identifiant du conducteur. Le header `X-Conducteur-Id`
+represente l'acteur pour simuler le controle de propriete dans ce projet.
+Il est fourni par le client et ne constitue pas une authentification securisee.
+
+Le PUT remplace les cinq informations du profil : tous les champs sont requis,
+avec les memes validations que pour la creation.
+
+```json
+{
+  "lastName": "Alami",
+  "firstName": "Hamid",
+  "email": "hamid@example.com",
+  "phone": "0699999999",
+  "licenseNumber": "AB123456"
+}
+```
+
+Une modification valide retourne 200 avec le profil actualise et le meme `id`.
+Elle ne cree pas une nouvelle ligne. Le conducteur peut conserver son email
+et son permis ; les controles de doublons excluent son propre identifiant.
+La modification est transactionnelle et journalisee au niveau INFO.
+
+| Cas | Status attendu |
+|---|---|
+| Modification de son profil avec des valeurs valides | 200 |
+| Profil inexistant | 404 |
+| Acteur different du proprietaire du profil existant | 403 |
+| Email ou permis deja utilise par un autre conducteur | 409 |
+| Champs invalides ou obligatoires absents | 400 |
+| Header X-Conducteur-Id absent ou non numerique | 400 |
+
+Conserver ces cas dans le dossier Conducteurs de Postman. Apres un PUT valide,
+relire le profil avec GET et verifier la base. Apres un refus, les donnees doivent
+rester identiques. Pour tester les doublons, utiliser un second conducteur avec
+des valeurs distinctes. Les controles sont aussi proteges par les contraintes
+uniques PostgreSQL et le traitement du SQLState 23505.
 
 ## Verifier les erreurs HTTP
 
