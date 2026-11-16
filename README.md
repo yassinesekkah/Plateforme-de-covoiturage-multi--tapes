@@ -24,6 +24,8 @@ ou la totalite d'un trajet.
 - Packages de l'architecture prepares.
 - Gestion centralisee des erreurs avec ProblemDetail.
 - Endpoints techniques de verification disponibles avec le profil `test-errors`.
+- Creation d'un conducteur avec validation des donnees et controle d'unicite.
+- Tests unitaires du service conducteur et du traitement des contraintes SQL.
 
 Les fonctionnalites metier seront ajoutees progressivement.
 
@@ -110,6 +112,82 @@ Avec PostgreSQL demarre :
 
 Le test de chargement du contexte utilise la configuration PostgreSQL locale.
 Les tests HTTP ci-dessous sont actuellement executes manuellement avec Postman.
+
+Pour lancer uniquement les tests unitaires sans PostgreSQL :
+
+```powershell
+.\mvnw.cmd "-Dtest=ConducteurServiceImplTest,GlobalExceptionHandlerTest" test
+```
+
+Les 3 tests de ConducteurServiceImpl verifient la creation valide,
+le refus d'un email existant et le refus d'un permis existant.
+Les 2 tests de GlobalExceptionHandler simulent les erreurs SQL :
+23505 retourne 409, une autre erreur de contrainte retourne 500.
+Ces simulations ne constituent pas un test de concurrence reelle en base.
+Le log ERROR affiche par le test du cas 500 est volontaire.
+
+## Creer un conducteur
+
+Cet endpoint fonctionne sans le profil `test-errors` :
+
+```text
+POST http://localhost:8080/api/conducteurs
+Content-Type: application/json
+```
+
+Corps de la requete :
+
+```json
+{
+  "lastName": "Alami",
+  "firstName": "Hamid",
+  "email": "hamid@example.com",
+  "phone": "0612345678",
+  "licenseNumber": "AB123456"
+}
+```
+
+Tous les champs sont obligatoires, ne doivent pas etre vides et sont limites
+a 255 caracteres. L'email doit avoir un format valide.
+L'email et le numero de permis doivent etre uniques parmi les conducteurs.
+Le client ne fournit pas d'identifiant : PostgreSQL le genere.
+
+Une creation valide retourne 201 Created :
+
+```json
+{
+  "id": 1,
+  "lastName": "Alami",
+  "firstName": "Hamid",
+  "email": "hamid@example.com",
+  "phone": "0612345678",
+  "licenseNumber": "AB123456"
+}
+```
+
+L'identifiant ci-dessus est un exemple. La ligne est enregistree dans la table
+`conducteurs`, avec la colonne `license_number` pour le numero de permis.
+La creation est journalisee au niveau INFO.
+
+Dans le dossier Conducteurs de Postman, conserver les cas suivants :
+
+| Cas | Status attendu | Resultat |
+|---|---|---|
+| Donnees valides et uniques | 201 | Conducteur cree avec son identifiant |
+| Email existant, permis nouveau | 409 | Cet email est deja utilise par un conducteur |
+| Permis existant, email nouveau | 409 | Ce numero de permis est deja utilise |
+| Nom vide | 400 | Liste errors contenant Le nom est obligatoire |
+| Email invalide | 400 | Liste errors contenant L'email est invalide |
+| Corps vide `{}` | 400 | Erreurs des champs obligatoires |
+
+Les requetes refusees ne doivent pas ajouter de conducteur.
+Les controles du service fournissent des messages precis sur les doublons.
+Les contraintes uniques PostgreSQL restent la protection finale : si un doublon
+atteint la base (SQLState 23505), le gestionnaire retourne 409 avec le message
+Une valeur devant etre unique est deja utilisee.
+
+La collection reste sauvegardee dans Postman. Son export dans le depot est prevu
+apres l'ajout des autres fonctionnalites.
 
 ## Verifier les erreurs HTTP
 
