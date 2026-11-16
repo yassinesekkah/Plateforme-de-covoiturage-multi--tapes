@@ -12,7 +12,9 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.ErrorResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.net.URI;
 import java.time.Instant;
@@ -222,5 +224,44 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(problem);
+    }
+
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ProblemDetail> handleDataIntegrityViolation(
+            DataIntegrityViolationException exception,
+            HttpServletRequest request) {
+
+        Throwable cause = exception;
+
+        while (cause != null) {
+
+            if (cause instanceof SQLException sqlException
+                    && "23505".equals(sqlException.getSQLState())) {
+
+                log.warn(
+                        "Doublon refuse par la base pour {} {}",
+                        request.getMethod(),
+                        request.getRequestURI()
+                );
+
+                ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                        HttpStatus.CONFLICT,
+                        "Une valeur devant etre unique est deja utilisee"
+                );
+
+                problem.setTitle("Donnees deja existantes");
+                problem.setInstance(URI.create(request.getRequestURI()));
+                problem.setProperty("timestamp", Instant.now());
+
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body(problem);
+            }
+
+            cause = cause.getCause();
+        }
+
+        return handleUnexpectedException(exception, request);
     }
 }
