@@ -26,6 +26,7 @@ ou la totalite d'un trajet.
 - Endpoints techniques de verification disponibles avec le profil `test-errors`.
 - Creation d'un conducteur avec validation des donnees et controle d'unicite.
 - Consultation, liste, recherche par nom ou email et modification du profil conducteur.
+- Creation, consultation, liste, recherche par email et modification des passagers.
 - Tests unitaires du service conducteur et du traitement des contraintes SQL.
 
 Les fonctionnalites metier seront ajoutees progressivement.
@@ -117,7 +118,7 @@ Les tests HTTP ci-dessous sont actuellement executes manuellement avec Postman.
 Pour lancer uniquement les tests unitaires sans PostgreSQL :
 
 ```powershell
-.\mvnw.cmd "-Dtest=ConducteurServiceImplTest,GlobalExceptionHandlerTest" test
+.\mvnw.cmd "-Dtest=ConducteurServiceImplTest,PassagerServiceImplTest,GlobalExceptionHandlerTest" test
 ```
 
 Les 13 tests de ConducteurServiceImpl couvrent la creation et les doublons,
@@ -127,6 +128,12 @@ Les 2 tests de GlobalExceptionHandler simulent les erreurs SQL :
 23505 retourne 409, une autre erreur de contrainte retourne 500.
 Ces simulations ne constituent pas un test de concurrence reelle en base.
 Le log ERROR affiche par le test du cas 500 est volontaire.
+
+Les 12 tests de PassagerServiceImpl couvrent creation, detail existant ou absent,
+liste et recherche avec ou sans resultats, nettoyage et refus du terme de recherche,
+modification du profil et refus de modification pour absence ou mauvais proprietaire.
+Ils utilisent des mocks : les validations HTTP, la recherche SQL et la persistance
+reelle se verifient avec Postman et PostgreSQL.
 
 ## Creer un conducteur
 
@@ -251,6 +258,52 @@ relire le profil avec GET et verifier la base. Apres un refus, les donnees doive
 rester identiques. Pour tester les doublons, utiliser un second conducteur avec
 des valeurs distinctes. Les controles sont aussi proteges par les contraintes
 uniques PostgreSQL et le traitement du SQLState 23505.
+
+## Gerer les passagers
+
+Ces endpoints fonctionnent sans le profil `test-errors` :
+
+| Methode | Chemin | Resultat |
+|---|---|---|
+| POST | /api/passagers | 201 et profil avec identifiant genere |
+| GET | /api/passagers/{id} | 200 et profil, ou 404 si absent |
+| GET | /api/passagers | 200 et liste, ou `[]` |
+| GET | /api/passagers/search?email=salma | 200 et liste des correspondances |
+| PUT | /api/passagers/{id} | 200 et profil actualise |
+
+Corps JSON pour POST et PUT :
+
+```json
+{
+  "lastName": "Bennani",
+  "firstName": "Salma",
+  "email": "salma@example.com",
+  "phone": "0612345678"
+}
+```
+
+Les quatre champs sont obligatoires, non blancs et limites a 255 caracteres.
+L'email doit avoir un format valide. Le client ne fournit pas d'identifiant.
+La table `passagers` ne contient pas de permis. L'email n'est pas unique :
+plusieurs passagers peuvent avoir le meme email, conformement au choix de conception.
+
+La recherche accepte une partie de l'email, ignore la casse et retire les espaces
+en debut et fin. Une recherche sans resultat retourne 200 avec `[]` ; un parametre
+absent ou blanc retourne 400. Aucun tri particulier n'est garanti.
+
+PUT demande les quatre champs et conserve l'identifiant. Le header obligatoire
+`X-Passager-Id` represente l'acteur : il doit correspondre au profil a modifier.
+C'est une simulation de propriete, pas une authentification securisee.
+Un profil absent retourne 404, un autre proprietaire 403, des donnees invalides
+ou un header absent/non numerique 400. Un email partage reste autorise.
+Les creations et modifications sont transactionnelles et journalisees au niveau INFO.
+
+Le gestionnaire d'erreurs commun est reutilise. L'historique des reservations
+sera ajoute avec la fonctionnalite de reservation.
+
+Le [guide des tests Postman passagers](docs/tests-passagers.md) fournit les requetes,
+les corps, les headers et les resultats attendus. La collection reste dans Postman
+jusqu'a l'export final prevu avec les autres fonctionnalites.
 
 ## Verifier les erreurs HTTP
 
