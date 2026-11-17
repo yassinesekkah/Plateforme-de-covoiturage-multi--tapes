@@ -1,0 +1,318 @@
+{
+  "info": {
+    "name": "Covoiturage - Vehicules",
+    "description": "Dossier Vehicules uniquement. Importer puis deplacer ce dossier dans votre collection Covoiturage existante. Sans variables ni scripts. Demarrer API et PostgreSQL. Les ids 1/2 sont des exemples a adapter manuellement ; le POST genere un id qui peut etre different de 1. Executer DELETE en dernier.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Vehicules",
+      "description": "Conducteur 1 doit exister. Remplacer manuellement id vehicule 1 par celui du POST si necessaire. Header X-Conducteur-Id:1 simule le proprietaire. Executer DELETE en dernier. Immatriculation unique : changer la valeur pour une nouvelle creation et recopier la meme valeur pour le test de doublon.",
+      "item": [
+        {
+          "name": "Ajouter vehicule au conducteur 1 - 201",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "201 si conducteur 1 existe et immatriculation disponible.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"12345-A-6\",\n  \"color\": \"Blanc\",\n  \"capacity\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consulter vehicule 1 - 200",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/vehicules/1",
+            "header": [],
+            "description": ""
+          }
+        },
+        {
+          "name": "Liste des vehicules du conducteur 1 - 200",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+            "header": [],
+            "description": ""
+          }
+        },
+        {
+          "name": "Modifier vehicule 1 - 200",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8080/api/vehicules/1",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"12345-A-6\",\n  \"color\": \"Noir\",\n  \"capacity\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Immatriculation deja utilisee - 409",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Apres le POST valide, reutiliser son immatriculation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"12345-A-6\",\n  \"color\": \"Blanc\",\n  \"capacity\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Capacite 0 - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"12345-A-6\",\n  \"color\": \"Blanc\",\n  \"capacity\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Capacite 9 - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"12345-A-6\",\n  \"color\": \"Blanc\",\n  \"capacity\": 9\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Capacite absente - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"12345-A-6\",\n  \"color\": \"Blanc\",\n  \"capacity\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ajout pour un autre conducteur - 403",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "2"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"12345-A-6\",\n  \"color\": \"Blanc\",\n  \"capacity\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Modification par un autre conducteur - 403",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8080/api/vehicules/1",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "2"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"12345-A-6\",\n  \"color\": \"Blanc\",\n  \"capacity\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Suppression par un autre conducteur - 403",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8080/api/vehicules/1",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "2"
+              }
+            ],
+            "description": ""
+          }
+        },
+        {
+          "name": "Vehicule absent - 404",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/vehicules/999999",
+            "header": [],
+            "description": ""
+          }
+        },
+        {
+          "name": "Conducteur absent - 404",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/999999/vehicules",
+            "header": [],
+            "description": ""
+          }
+        },
+        {
+          "name": "Header absent - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"12345-A-6\",\n  \"color\": \"Blanc\",\n  \"capacity\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Supprimer vehicule 1 - 204",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8080/api/vehicules/1",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Derniere requete : supprime reellement le vehicule. 409 si reference par un trajet une fois COV-12 implemente."
+          }
+        }
+      ]
+    }
+  ]
+}

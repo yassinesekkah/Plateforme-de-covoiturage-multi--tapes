@@ -27,6 +27,7 @@ ou la totalite d'un trajet.
 - Creation d'un conducteur avec validation des donnees et controle d'unicite.
 - Consultation, liste, recherche par nom ou email et modification du profil conducteur.
 - Creation, consultation, liste, recherche par email et modification des passagers.
+- Ajout, consultation, liste par conducteur, modification et suppression des vehicules.
 - Tests unitaires du service conducteur et du traitement des contraintes SQL.
 
 Les fonctionnalites metier seront ajoutees progressivement.
@@ -320,6 +321,53 @@ Un POST genere son propre id, qui n'est pas forcement 1. Les noms et description
 des requetes indiquent les resultats attendus. Executer la creation valide avant
 le test de doublon correspondant, en conservant les memes valeurs pour ce dernier.
 
+## Gerer les vehicules
+
+| Methode | Chemin | Resultat |
+|---|---|---|
+| POST | /api/conducteurs/{conducteurId}/vehicules | 201 et vehicule cree |
+| GET | /api/vehicules/{id} | 200, ou 404 si absent |
+| GET | /api/conducteurs/{conducteurId}/vehicules | 200 et liste, ou 404 si conducteur absent |
+| PUT | /api/vehicules/{id} | 200 et vehicule actualise |
+| DELETE | /api/vehicules/{id} | 204 sans corps |
+
+POST, PUT et DELETE demandent le header `X-Conducteur-Id`, qui simule l'acteur.
+Il doit correspondre au proprietaire ; sinon 403. Ce header n'est pas une authentification.
+Le proprietaire est fixe a la creation par l'identifiant du chemin et ne peut pas
+etre modifie par PUT. Une ressource absente retourne 404.
+
+Corps POST/PUT complet :
+
+```json
+{
+  "brand": "Dacia",
+  "model": "Logan",
+  "registrationNumber": "12345-A-6",
+  "color": "Blanc",
+  "capacity": 4
+}
+```
+
+Les textes sont obligatoires et limites a 255 caracteres. La capacite est obligatoire,
+entre 1 et 8 places passagers, sans compter le conducteur. Donnees invalides : 400.
+L'immatriculation est unique : doublon en creation ou sur un autre vehicule en
+modification retourne 409. Conserver son immatriculation actuelle est autorise.
+La reponse contient les champs du vehicule, son id genere et conducteurId.
+Un conducteur existant sans vehicules a une liste vide (200 et []).
+
+La suppression force le DELETE en transaction avec flush : un refus de cle etrangere
+PostgreSQL (23503) est traduit en conflit metier 409. Le refus est couvert par une
+simulation unitaire. La relation reelle Trajet -> Vehicule et le test d'integration
+« vehicule associe a un trajet non supprimable » restent a ajouter dans COV-12.
+Cette relation devra conserver la protection de cle etrangere sans suppression en cascade.
+
+Les tests VehiculeServiceImplTest couvrent proprietaire, doublons, lecture, liste,
+modification et suppression. VehiculeValidationTest couvre les bornes 1 et 8,
+les capacites nulles/hors limites et les champs textes obligatoires.
+Le dossier Vehicules de la collection simple contient les requetes manuelles,
+avec ids et headers ecrits directement. Adapter les ids aux donnees existantes,
+et executer la suppression apres les lectures et modifications.
+
 ## Verifier les erreurs HTTP
 
 Pour activer les endpoints techniques :
@@ -419,7 +467,8 @@ ma.youcode.covoiturage
 |-- entity
 |-- dto
 |   |-- conducteur
-|   `-- passager
+|   |-- passager
+|   `-- vehicule
 |-- mapper
 `-- exception
 ```
