@@ -1,0 +1,619 @@
+{
+  "info": {
+    "name": "Covoiturage - Publication trajets",
+    "description": "Uniquement publication. Pas encore de detail, recherche ou cycle de vie. Sans variables ni scripts. Adapter ids et dates (depart futur) manuellement. Le test de capacite suppose un vehicule de capacite 4. Tests 403 vehicule autre conducteur : les deux conducteurs doivent exister.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Trajets - Publication COV-12",
+      "description": "Uniquement publication. Pas encore de detail, recherche ou cycle de vie. Sans variables ni scripts. Adapter ids et dates (depart futur) manuellement. Le test de capacite suppose un vehicule de capacite 4. Tests 403 vehicule autre conducteur : les deux conducteurs doivent exister.",
+      "item": [
+        {
+          "name": "Publier un trajet - 201",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Conducteur 1 et vehicule 1 doivent exister ; le vehicule appartient au conducteur 1 et a au moins 3 places. Adapter les ids et dates manuellement. Chaque POST valide cree un nouveau trajet.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Places proposees 0 - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 0,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Places superieures a capacite 4 - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 5,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Un seul point - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Liste absente - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Point null - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    null,\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ville vide - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ville repetee avec casse differente - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \" RABAT \",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Depart passe - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2020-01-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Heures egales - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Heures decroissantes - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T16:00:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Premier prix different de zero - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 10\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Prix egaux - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 40\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Prix decroissants - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 30\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Prix negatif - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": -1\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Prix avec trois decimales - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40.001\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Vehicule absent - 404",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 999999,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Acteur different du conducteur - 403",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "2"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Vehicule du conducteur 1 utilise par conducteur 2 - 403",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/2/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "2"
+              }
+            ],
+            "description": "Conducteur 2 doit exister et vehicule 1 doit appartenir au conducteur 1.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Conducteur absent - 404",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/999999/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "999999"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Header absent - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "JSON malforme - 400",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"vehiculeId\":",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Supprimer vehicule lie au trajet - 409",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8080/api/vehicules/1",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Apres publication valide avec vehicule 1. Le vehicule et le trajet doivent rester en base."
+          }
+        }
+      ]
+    }
+  ]
+}
