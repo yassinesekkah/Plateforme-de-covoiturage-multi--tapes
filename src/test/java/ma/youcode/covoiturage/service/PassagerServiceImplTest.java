@@ -1,8 +1,8 @@
 package ma.youcode.covoiturage.service;
 
-import ma.youcode.covoiturage.dto.PassagerCreateRequest;
-import ma.youcode.covoiturage.dto.PassagerResponse;
-import ma.youcode.covoiturage.dto.PassagerUpdateRequest;
+import ma.youcode.covoiturage.dto.passager.PassagerCreateRequest;
+import ma.youcode.covoiturage.dto.passager.PassagerResponse;
+import ma.youcode.covoiturage.dto.passager.PassagerUpdateRequest;
 import ma.youcode.covoiturage.entity.Passager;
 import ma.youcode.covoiturage.exception.ResourceNotFoundException;
 import ma.youcode.covoiturage.exception.BadRequestException;

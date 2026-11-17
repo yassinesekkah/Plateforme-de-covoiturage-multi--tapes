@@ -1,8 +1,8 @@
 package ma.youcode.covoiturage.mapper;
 
-import ma.youcode.covoiturage.dto.ConducteurCreateRequest;
-import ma.youcode.covoiturage.dto.ConducteurResponse;
-import ma.youcode.covoiturage.dto.ConducteurUpdateRequest;
+import ma.youcode.covoiturage.dto.conducteur.ConducteurCreateRequest;
+import ma.youcode.covoiturage.dto.conducteur.ConducteurResponse;
+import ma.youcode.covoiturage.dto.conducteur.ConducteurUpdateRequest;
 import ma.youcode.covoiturage.entity.Conducteur;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

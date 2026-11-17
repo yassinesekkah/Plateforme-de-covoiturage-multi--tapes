@@ -1,4 +1,4 @@
-package ma.youcode.covoiturage.dto;
+package ma.youcode.covoiturage.dto.conducteur;
 
 public record ConducteurResponse(
         Long id,
