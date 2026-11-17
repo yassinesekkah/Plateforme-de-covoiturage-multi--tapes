@@ -1,0 +1,154 @@
+package ma.youcode.covoiturage.service.impl;
+
+import ma.youcode.covoiturage.dto.trajet.PointArretCreateRequest;
+import ma.youcode.covoiturage.dto.trajet.TrajetCreateRequest;
+import ma.youcode.covoiturage.dto.trajet.TrajetResponse;
+import ma.youcode.covoiturage.entity.Conducteur;
+import ma.youcode.covoiturage.entity.PointArret;
+import ma.youcode.covoiturage.entity.Trajet;
+import ma.youcode.covoiturage.entity.Vehicule;
+import ma.youcode.covoiturage.enums.StatutTrajet;
+import ma.youcode.covoiturage.exception.BadRequestException;
+import ma.youcode.covoiturage.exception.ForbiddenException;
+import ma.youcode.covoiturage.exception.ResourceNotFoundException;
+import ma.youcode.covoiturage.mapper.PointArretMapper;
+import ma.youcode.covoiturage.mapper.TrajetMapper;
+import ma.youcode.covoiturage.repository.ConducteurRepository;
+import ma.youcode.covoiturage.repository.TrajetRepository;
+import ma.youcode.covoiturage.repository.VehiculeRepository;
+import ma.youcode.covoiturage.service.TrajetService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
+@Service
+public class TrajetServiceImpl implements TrajetService {
+
+    private static final Logger log = LoggerFactory.getLogger(TrajetServiceImpl.class);
+
+    private final ConducteurRepository conducteurRepository;
+    private final VehiculeRepository vehiculeRepository;
+    private final TrajetRepository trajetRepository;
+    private final TrajetMapper trajetMapper;
+    private final PointArretMapper pointArretMapper;
+
+    public TrajetServiceImpl(ConducteurRepository conducteurRepository,
+                            VehiculeRepository vehiculeRepository,
+                            TrajetRepository trajetRepository,
+                            TrajetMapper trajetMapper,
+                            PointArretMapper pointArretMapper) {
+        this.conducteurRepository = conducteurRepository;
+        this.vehiculeRepository = vehiculeRepository;
+        this.trajetRepository = trajetRepository;
+        this.trajetMapper = trajetMapper;
+        this.pointArretMapper = pointArretMapper;
+    }
+
+    @Override
+    @Transactional
+    public TrajetResponse create(Long conducteurId, Long actorId, TrajetCreateRequest request) {
+        Conducteur conducteur = conducteurRepository.findById(conducteurId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Conducteur introuvable avec l'identifiant " + conducteurId));
+
+        if (!conducteur.getId().equals(actorId)) {
+            throw new ForbiddenException("Vous ne pouvez publier que vos propres trajets");
+        }
+
+        Vehicule vehicule = vehiculeRepository.findById(request.vehiculeId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Vehicule introuvable avec l'identifiant " + request.vehiculeId()));
+
+        if (!vehicule.getConducteur().getId().equals(conducteurId)) {
+            throw new ForbiddenException("Ce vehicule appartient a un autre conducteur");
+        }
+
+        validateSeats(request.offeredSeats(), vehicule.getCapacity());
+        validatePoints(request.pointsArret());
+
+        Trajet trajet = trajetMapper.toEntity(request);
+        trajet.setConducteur(conducteur);
+        trajet.setVehicule(vehicule);
+        trajet.setStatus(StatutTrajet.PUBLIE);
+
+        List<PointArretCreateRequest> points = request.pointsArret();
+        for (int i = 0; i < points.size(); i++) {
+            PointArret point = pointArretMapper.toEntity(points.get(i));
+            point.setCity(point.getCity().trim());
+            point.setStopOrder(i);
+            point.setPriceFromDeparture(point.getPriceFromDeparture().setScale(2));
+            trajet.addPointArret(point);
+        }
+
+        PointArret first = trajet.getPointsArret().get(0);
+        PointArret last = trajet.getPointsArret().get(trajet.getPointsArret().size() - 1);
+        trajet.setDepartureCity(first.getCity());
+        trajet.setArrivalCity(last.getCity());
+        trajet.setDepartureTime(first.getPassageTime());
+
+        // La cascade sauvegarde les points avec le trajet, dans la meme transaction.
+        Trajet savedTrajet = trajetRepository.save(trajet);
+        log.info("Publication du trajet {} par le conducteur {}", savedTrajet.getId(), conducteurId);
+        return trajetMapper.toResponse(savedTrajet);
+    }
+
+    private void validateSeats(Integer offeredSeats, Integer capacity) {
+        if (offeredSeats == null || offeredSeats < 1) {
+            throw new BadRequestException("Il faut proposer au moins une place");
+        }
+        if (offeredSeats > capacity) {
+            throw new BadRequestException("Le nombre de places ne doit pas depasser " + capacity);
+        }
+    }
+
+    private void validatePoints(List<PointArretCreateRequest> points) {
+        if (points == null || points.size() < 2) {
+            throw new BadRequestException("Le trajet doit contenir au moins deux points d'arret");
+        }
+
+        Set<String> cities = new HashSet<>();
+        for (int i = 0; i < points.size(); i++) {
+            PointArretCreateRequest point = points.get(i);
+            if (point == null || point.city() == null || point.city().isBlank()
+                    || point.passageTime() == null || point.priceFromDeparture() == null) {
+                throw new BadRequestException("Chaque point doit contenir une ville, une date et un prix");
+            }
+
+            String city = point.city().trim().toLowerCase(Locale.ROOT);
+            if (!cities.add(city)) {
+                throw new BadRequestException("Une ville ne peut pas apparaitre deux fois sur le parcours");
+            }
+
+            BigDecimal price = point.priceFromDeparture();
+            if (price.signum() < 0 || price.stripTrailingZeros().scale() > 2
+                    || price.compareTo(new BigDecimal("9999999999.99")) > 0) {
+                throw new BadRequestException("Le prix doit etre positif ou nul et accepte au maximum deux decimales et dix chiffres entiers");
+            }
+
+            if (i == 0) {
+                if (!point.passageTime().isAfter(LocalDateTime.now())) {
+                    throw new BadRequestException("Le depart doit etre dans le futur");
+                }
+                if (price.compareTo(BigDecimal.ZERO) != 0) {
+                    throw new BadRequestException("Le prix du premier point doit etre egal a zero");
+                }
+            } else {
+                PointArretCreateRequest previous = points.get(i - 1);
+                if (!point.passageTime().isAfter(previous.passageTime())) {
+                    throw new BadRequestException("Les heures de passage doivent etre strictement croissantes");
+                }
+                if (price.compareTo(previous.priceFromDeparture()) <= 0) {
+                    throw new BadRequestException("Les prix depuis le depart doivent etre strictement croissants");
+                }
+            }
+        }
+    }
+}

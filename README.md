@@ -28,6 +28,7 @@ ou la totalite d'un trajet.
 - Consultation, liste, recherche par nom ou email et modification du profil conducteur.
 - Creation, consultation, liste, recherche par email et modification des passagers.
 - Ajout, consultation, liste par conducteur, modification et suppression des vehicules.
+- Publication d'un trajet avec points d'arret ordonnes et validations du parcours (COV-12).
 - Tests unitaires du service conducteur et du traitement des contraintes SQL.
 
 Les fonctionnalites metier seront ajoutees progressivement.
@@ -314,7 +315,7 @@ les corps, les headers et les resultats attendus. La collection reste dans Postm
 jusqu'a l'export final prevu avec les autres fonctionnalites.
 
 La [collection simple importable](postman/covoiturage-simple.postman_collection.json)
-regroupe Conducteurs et Passagers, sans variables ni scripts. Les URLs sont completes
+regroupe Conducteurs, Passagers, Vehicules et Publication des trajets, sans variables ni scripts. Les URLs sont completes
 et les identifiants d'exemple sont ecrits directement (1, 2, 999999).
 Adapter manuellement les ids et les emails aux profils de la base.
 Un POST genere son propre id, qui n'est pas forcement 1. Les noms et descriptions
@@ -355,11 +356,11 @@ modification retourne 409. Conserver son immatriculation actuelle est autorise.
 La reponse contient les champs du vehicule, son id genere et conducteurId.
 Un conducteur existant sans vehicules a une liste vide (200 et []).
 
-La suppression force le DELETE en transaction avec flush : un refus de cle etrangere
-PostgreSQL (23503) est traduit en conflit metier 409. Le refus est couvert par une
-simulation unitaire. La relation reelle Trajet -> Vehicule et le test d'integration
-« vehicule associe a un trajet non supprimable » restent a ajouter dans COV-12.
-Cette relation devra conserver la protection de cle etrangere sans suppression en cascade.
+Avant suppression, le service verifie qu'aucun trajet n'utilise le vehicule : sinon 409.
+La cle etrangere Trajet -> Vehicule protege aussi la base, sans suppression en cascade.
+Le DELETE est force par flush et un refus SQLState 23503 est traduit en 409.
+Les tests d'integration PostgreSQL verifient le refus du service, la protection
+directe par la base et la conservation du vehicule et du trajet apres rollback.
 
 Les tests VehiculeServiceImplTest couvrent proprietaire, doublons, lecture, liste,
 modification et suppression. VehiculeValidationTest couvre les bornes 1 et 8,
@@ -367,6 +368,68 @@ les capacites nulles/hors limites et les champs textes obligatoires.
 Le dossier Vehicules de la collection simple contient les requetes manuelles,
 avec ids et headers ecrits directement. Adapter les ids aux donnees existantes,
 et executer la suppression apres les lectures et modifications.
+
+## Publier un trajet (COV-12)
+
+```text
+POST http://localhost:8080/api/conducteurs/1/trajets
+Content-Type: application/json
+X-Conducteur-Id: 1
+```
+
+Le conducteur du chemin et l'acteur du header doivent correspondre. Le vehicule
+doit appartenir a ce conducteur. Le header reste une simulation d'identite.
+
+```json
+{
+  "vehiculeId": 1,
+  "offeredSeats": 3,
+  "pointsArret": [
+    {"city": "Rabat", "passageTime": "2026-12-01T17:00:00", "priceFromDeparture": 0.00},
+    {"city": "Casablanca", "passageTime": "2026-12-01T18:15:00", "priceFromDeparture": 40.00},
+    {"city": "Marrakech", "passageTime": "2026-12-01T21:30:00", "priceFromDeparture": 120.00}
+  ]
+}
+```
+
+Adapter les ids aux donnees existantes et les dates pour conserver un depart futur.
+Les places proposees vont de 1 a la capacite du vehicule. Le parcours contient
+au moins deux points, avec villes non vides et uniques apres trim/comparaison
+sans distinction de casse. Les heures sont strictement croissantes. Le premier
+prix vaut zero, puis les prix sont strictement croissants, non negatifs et limites
+a deux decimales (10 chiffres entiers maximum).
+
+Le service genere stopOrder (0, 1, 2...), deduit departureCity, arrivalCity et
+departureTime des points et cree le trajet avec statut PUBLIE. Les prix sont des
+BigDecimal stockes avec deux decimales. Le trajet et ses points sont sauvegardes
+dans une seule transaction. Il n'existe pas de classe Segment.
+
+| Cas | HTTP attendu |
+|---|---|
+| Publication valide | 201, ids du trajet et des points, statut PUBLIE |
+| Conducteur ou vehicule inexistant | 404 |
+| Acteur different ou vehicule d'un autre conducteur | 403 |
+| Places invalides, parcours/date/ordre des heures/prix invalides | 400 |
+| Suppression du vehicule apres publication | 409 |
+
+Les annotations DTO verifient aussi les champs obligatoires et les elements de la
+liste grace a Valid. Les regles comparees entre points sont verifiees dans le service.
+Les contraintes uniques composees ne sont pas necessaires dans les annotations
+des entites ; la validation du service gere l'ordre et les villes repetees.
+
+Le dossier Trajets - Publication COV-12 de la collection simple contient les cas
+valides et refuses. La [collection de publication seule](postman/trajets-publication.postman_collection.json)
+permet d'importer uniquement ce dossier, sans variables ni scripts.
+
+TrajetServiceImplTest couvre les validations avec mocks. TrajetValidationTest
+verifie les contraintes DTO imbriquees. TrajetPublicationIntegrationTest utilise
+PostgreSQL et les vrais mappers pour verifier la persistance, l'ordre, le rollback
+du trajet avec ses points et le refus de suppression du vehicule reference.
+Ce test cree et nettoie uniquement ses propres donnees identifiees par ids et UUID.
+Un rollback ne remet pas a zero les sequences : des trous dans les ids sont normaux.
+
+Pour l'instant, COV-12 expose uniquement la publication. La consultation detaillee,
+la recherche, les reservations et les changements de statut restent dans les stories suivantes.
 
 ## Verifier les erreurs HTTP
 
@@ -468,7 +531,8 @@ ma.youcode.covoiturage
 |-- dto
 |   |-- conducteur
 |   |-- passager
-|   `-- vehicule
+|   |-- vehicule
+|   `-- trajet
 |-- mapper
 `-- exception
 ```

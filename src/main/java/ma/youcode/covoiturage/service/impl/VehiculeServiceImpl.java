@@ -7,6 +7,7 @@ import ma.youcode.covoiturage.exception.*;
 import ma.youcode.covoiturage.mapper.VehiculeMapper;
 import ma.youcode.covoiturage.repository.ConducteurRepository;
 import ma.youcode.covoiturage.repository.VehiculeRepository;
+import ma.youcode.covoiturage.repository.TrajetRepository;
 import ma.youcode.covoiturage.service.VehiculeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,13 +24,16 @@ public class VehiculeServiceImpl implements VehiculeService {
     private final VehiculeRepository vehiculeRepository;
     private final ConducteurRepository conducteurRepository;
     private final VehiculeMapper vehiculeMapper;
+    private final TrajetRepository trajetRepository;
 
     public VehiculeServiceImpl(VehiculeRepository vehiculeRepository,
                                ConducteurRepository conducteurRepository,
-                               VehiculeMapper vehiculeMapper) {
+                               VehiculeMapper vehiculeMapper,
+                               TrajetRepository trajetRepository) {
         this.vehiculeRepository = vehiculeRepository;
         this.conducteurRepository = conducteurRepository;
         this.vehiculeMapper = vehiculeMapper;
+        this.trajetRepository = trajetRepository;
     }
 
     @Override
@@ -85,6 +89,9 @@ public class VehiculeServiceImpl implements VehiculeService {
     public void delete(Long id, Long actorId) {
         Vehicule vehicule = findVehicule(id);
         checkOwner(vehicule.getConducteur().getId(), actorId);
+        if (trajetRepository.existsByVehiculeId(id)) {
+            throw new BusinessException("Ce vehicule est utilise et ne peut pas etre supprime");
+        }
         try {
             vehiculeRepository.delete(vehicule);
             // Force le DELETE dans cette methode pour intercepter un refus de cle etrangere.

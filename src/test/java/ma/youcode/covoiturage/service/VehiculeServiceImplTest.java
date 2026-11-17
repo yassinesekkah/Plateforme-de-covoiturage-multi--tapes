@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 class VehiculeServiceImplTest {
     @Mock private VehiculeRepository vehiculeRepository;
     @Mock private ConducteurRepository conducteurRepository;
+    @Mock private TrajetRepository trajetRepository;
     @Spy private VehiculeMapper vehiculeMapper = Mappers.getMapper(VehiculeMapper.class);
     @InjectMocks private VehiculeServiceImpl service;
     private Conducteur owner;
@@ -164,6 +165,16 @@ class VehiculeServiceImplTest {
                 .when(vehiculeRepository).flush();
         assertThatThrownBy(() -> service.delete(10L, 1L)).isInstanceOf(BusinessException.class)
                 .hasMessage("Ce vehicule est utilise et ne peut pas etre supprime");
+    }
+
+    @Test
+    void rejectsVehicleAlreadyAssociatedWithTrajetBeforeDelete() {
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
+        when(trajetRepository.existsByVehiculeId(10L)).thenReturn(true);
+        assertThatThrownBy(() -> service.delete(10L, 1L)).isInstanceOf(BusinessException.class)
+                .hasMessage("Ce vehicule est utilise et ne peut pas etre supprime");
+        verify(vehiculeRepository, never()).delete(any());
+        verify(vehiculeRepository, never()).flush();
     }
 
     @Test
