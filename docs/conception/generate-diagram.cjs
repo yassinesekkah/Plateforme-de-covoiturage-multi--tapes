@@ -4,7 +4,7 @@ const out = __dirname;
 const classes = [
  ['Conducteur',60,90,['id : Long','nom : String','prenom : String','email : String {unique}','telephone : String','numeroPermis : String {unique}']],
  ['Vehicule',490,90,['id : Long','marque : String','modele : String','immatriculation : String {unique}','couleur : String','capacite : int {1..8}']],
- ['Passager',1050,90,['id : Long','nom : String','prenom : String','email : String','telephone : String']],
+ ['Passager',1050,90,['id : Long','nom : String','prenom : String','email : String {unique}','telephone : String']],
  ['Trajet',60,500,['id : Long','villeDepart : String','villeArrivee : String','dateDepart : LocalDateTime','placesProposees : int','statut : StatutTrajet','/placesRestantes : int {calcule}']],
  ['PointArret',490,500,['id : Long','ville : String','ordre : int','heurePassage : LocalDateTime','prixDepuisDepart : BigDecimal']],
  ['Reservation',1050,500,['id : Long','nombrePlaces : int','montantTotal : BigDecimal','dateReservation : LocalDateTime','statut : StatutReservation']]
