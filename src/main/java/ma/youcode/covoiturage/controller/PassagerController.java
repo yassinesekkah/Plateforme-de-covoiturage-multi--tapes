@@ -1,9 +1,9 @@
 package ma.youcode.covoiturage.controller;
 
 import jakarta.validation.Valid;
-import ma.youcode.covoiturage.dto.PassagerCreateRequest;
-import ma.youcode.covoiturage.dto.PassagerResponse;
-import ma.youcode.covoiturage.dto.PassagerUpdateRequest;
+import ma.youcode.covoiturage.dto.passager.PassagerCreateRequest;
+import ma.youcode.covoiturage.dto.passager.PassagerResponse;
+import ma.youcode.covoiturage.dto.passager.PassagerUpdateRequest;
 import ma.youcode.covoiturage.service.PassagerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,10 +1,10 @@
-package ma.youcode.covoiturage.dto;
+package ma.youcode.covoiturage.dto.conducteur;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record ConducteurUpdateRequest(
+public record ConducteurCreateRequest(
 
         @NotBlank(message = "Le nom est obligatoire")
         @Size(max = 255, message = "Le nom ne doit pas depasser 255 caracteres")

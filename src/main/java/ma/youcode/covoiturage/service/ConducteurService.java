@@ -1,8 +1,8 @@
 package ma.youcode.covoiturage.service;
 
-import ma.youcode.covoiturage.dto.ConducteurCreateRequest;
-import ma.youcode.covoiturage.dto.ConducteurResponse;
-import ma.youcode.covoiturage.dto.ConducteurUpdateRequest;
+import ma.youcode.covoiturage.dto.conducteur.ConducteurCreateRequest;
+import ma.youcode.covoiturage.dto.conducteur.ConducteurResponse;
+import ma.youcode.covoiturage.dto.conducteur.ConducteurUpdateRequest;
 
 import java.util.List;
 

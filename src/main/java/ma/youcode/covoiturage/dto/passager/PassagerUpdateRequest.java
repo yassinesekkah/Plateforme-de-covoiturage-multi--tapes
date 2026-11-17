@@ -1,4 +1,4 @@
-package ma.youcode.covoiturage.dto;
+package ma.youcode.covoiturage.dto.passager;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

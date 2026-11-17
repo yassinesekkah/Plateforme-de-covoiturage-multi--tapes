@@ -418,6 +418,8 @@ ma.youcode.covoiturage
 |-- repository
 |-- entity
 |-- dto
+|   |-- conducteur
+|   `-- passager
 |-- mapper
 `-- exception
 ```
