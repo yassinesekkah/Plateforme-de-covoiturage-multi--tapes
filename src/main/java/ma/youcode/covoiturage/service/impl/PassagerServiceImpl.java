@@ -5,6 +5,7 @@ import ma.youcode.covoiturage.dto.PassagerResponse;
 import ma.youcode.covoiturage.dto.PassagerUpdateRequest;
 import ma.youcode.covoiturage.entity.Passager;
 import ma.youcode.covoiturage.exception.BadRequestException;
+import ma.youcode.covoiturage.exception.BusinessException;
 import ma.youcode.covoiturage.exception.ForbiddenException;
 import ma.youcode.covoiturage.exception.ResourceNotFoundException;
 import ma.youcode.covoiturage.mapper.PassagerMapper;
@@ -36,6 +37,12 @@ public class PassagerServiceImpl implements PassagerService {
     @Override
     @Transactional
     public PassagerResponse create(PassagerCreateRequest request) {
+        if (passagerRepository.existsByEmail(request.email())) {
+            throw new BusinessException(
+                    "Cet email est deja utilise par un passager"
+            );
+        }
+
         Passager passager = passagerMapper.toEntity(request);
         Passager savedPassager = passagerRepository.save(passager);
 
@@ -90,6 +97,12 @@ public class PassagerServiceImpl implements PassagerService {
         if (!passager.getId().equals(actorId)) {
             throw new ForbiddenException(
                     "Vous ne pouvez modifier que votre propre profil"
+            );
+        }
+
+        if (passagerRepository.existsByEmailAndIdNot(request.email(), id)) {
+            throw new BusinessException(
+                    "Cet email est deja utilise par un autre passager"
             );
         }
 

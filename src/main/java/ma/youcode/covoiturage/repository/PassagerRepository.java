@@ -7,5 +7,9 @@ import java.util.List;
 
 public interface PassagerRepository extends JpaRepository<Passager, Long> {
 
+    boolean existsByEmail(String email);
+
+    boolean existsByEmailAndIdNot(String email, Long id);
+
     List<Passager> findByEmailContainingIgnoreCase(String email);
 }

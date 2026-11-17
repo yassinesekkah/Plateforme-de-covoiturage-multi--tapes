@@ -129,9 +129,10 @@ Les 2 tests de GlobalExceptionHandler simulent les erreurs SQL :
 Ces simulations ne constituent pas un test de concurrence reelle en base.
 Le log ERROR affiche par le test du cas 500 est volontaire.
 
-Les 12 tests de PassagerServiceImpl couvrent creation, detail existant ou absent,
+Les 14 tests de PassagerServiceImpl couvrent creation, detail existant ou absent,
 liste et recherche avec ou sans resultats, nettoyage et refus du terme de recherche,
-modification du profil et refus de modification pour absence ou mauvais proprietaire.
+modification du profil et refus de modification pour absence ou mauvais proprietaire,
+ainsi que les emails deja utilises en creation et modification.
 Ils utilisent des mocks : les validations HTTP, la recherche SQL et la persistance
 reelle se verifient avec Postman et PostgreSQL.
 
@@ -284,8 +285,11 @@ Corps JSON pour POST et PUT :
 
 Les quatre champs sont obligatoires, non blancs et limites a 255 caracteres.
 L'email doit avoir un format valide. Le client ne fournit pas d'identifiant.
-La table `passagers` ne contient pas de permis. L'email n'est pas unique :
-plusieurs passagers peuvent avoir le meme email, conformement au choix de conception.
+La table `passagers` ne contient pas de permis. L'email est unique parmi les passagers,
+comme choix de conception complementaire au brief. Creation avec email existant :
+409 et Cet email est deja utilise par un passager.
+L'unicite compare les valeurs exactes, comme pour les conducteurs ; la recherche
+reste insensible a la casse.
 
 La recherche accepte une partie de l'email, ignore la casse et retire les espaces
 en debut et fin. Une recherche sans resultat retourne 200 avec `[]` ; un parametre
@@ -295,7 +299,10 @@ PUT demande les quatre champs et conserve l'identifiant. Le header obligatoire
 `X-Passager-Id` represente l'acteur : il doit correspondre au profil a modifier.
 C'est une simulation de propriete, pas une authentification securisee.
 Un profil absent retourne 404, un autre proprietaire 403, des donnees invalides
-ou un header absent/non numerique 400. Un email partage reste autorise.
+ou un header absent/non numerique 400. Le passager peut conserver son propre email.
+L'email d'un autre passager est refuse avec 409 et le message
+Cet email est deja utilise par un autre passager. La contrainte unique PostgreSQL
+protege aussi les acces concurrents ; une violation SQLState 23505 retourne 409.
 Les creations et modifications sont transactionnelles et journalisees au niveau INFO.
 
 Le gestionnaire d'erreurs commun est reutilise. L'historique des reservations
@@ -304,6 +311,14 @@ sera ajoute avec la fonctionnalite de reservation.
 Le [guide des tests Postman passagers](docs/tests-passagers.md) fournit les requetes,
 les corps, les headers et les resultats attendus. La collection reste dans Postman
 jusqu'a l'export final prevu avec les autres fonctionnalites.
+
+La [collection simple importable](postman/covoiturage-simple.postman_collection.json)
+regroupe Conducteurs et Passagers, sans variables ni scripts. Les URLs sont completes
+et les identifiants d'exemple sont ecrits directement (1, 2, 999999).
+Adapter manuellement les ids et les emails aux profils de la base.
+Un POST genere son propre id, qui n'est pas forcement 1. Les noms et descriptions
+des requetes indiquent les resultats attendus. Executer la creation valide avant
+le test de doublon correspondant, en conservant les memes valeurs pour ce dernier.
 
 ## Verifier les erreurs HTTP
 

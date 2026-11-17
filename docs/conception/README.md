@@ -34,7 +34,7 @@ Les relations suffisent à représenter les références aux objets : pas besoin
 - `/placesRestantes` est un attribut dérivé UML : il ne devient pas une colonne. Le prix du segment n’est pas stocké non plus. Le montant total de la réservation est conservé.
 - Les attributs villeDepart, villeArrivee et dateDepart du trajet sont conservés pour suivre le modèle du brief. Ils sont déterminés par les points et ne sont pas saisis indépendamment.
 - Les heures sont des LocalDateTime pour gérer un trajet passant à la date suivante. Tous les montants utilisent BigDecimal à deux décimales.
-- L’email conducteur, le permis et l’immatriculation sont uniques comme demandé dans le brief. L’unicité de l’email passager n’est pas ajoutée sans décision explicite.
+- L’email conducteur, le permis et l’immatriculation sont uniques comme demandé dans le brief. L’email passager est également unique, par choix explicite de conception. Un passager peut conserver son propre email lors d’une modification ; l’email d’un autre passager est refusé.
 - La contrainte « une réservation CONFIRMEE par passager et par trajet » n’est pas une relation 1 à 1 : les réservations annulées restent dans l’historique.
 - La composition concerne les points du trajet. Elle ne signifie pas qu’annuler un trajet supprime ses points ou ses réservations : une annulation change les statuts.
 - Les règles métier (dates, capacités, propriétaire, statuts) seront vérifiées dans les services. Le diagramme reste centré sur les entités ; controllers, services, repositories et DTO seront développés fonctionnalité par fonctionnalité.

@@ -1,0 +1,1316 @@
+{
+  "info": {
+    "name": "Covoiturage - Passagers COV-10",
+    "description": "Requetes passagers et assertions. Les emails sont uniques. Executer le dossier dans l ordre : les deux POST generent des emails distincts a chaque execution et enregistrent les ids. Le POST doublon et le PUT avec email d un autre passager attendent 409. Chaque execution ajoute deux profils. API localhost:8080 ; aucun profil test-errors requis.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "passagerId",
+      "value": ""
+    },
+    {
+      "key": "autrePassagerId",
+      "value": ""
+    },
+    {
+      "key": "absentId",
+      "value": "999999"
+    },
+    {
+      "key": "passagerEmail",
+      "value": ""
+    },
+    {
+      "key": "autrePassagerEmail",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Passagers",
+      "description": "Executer les deux premieres creations avant les autres requetes. Ajouter absentId=999999 dans la collection cible si ce dossier est deplace. Les scripts memorisent les emails et les ids dans la collection cible.",
+      "item": [
+        {
+          "name": "01 - Creation",
+          "item": [
+            {
+              "name": "201 - Creer Salma et memoriser son id",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0612345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const suffix = Date.now() + '-' + Math.random().toString(36).slice(2, 8);",
+                      "pm.collectionVariables.set('passagerEmail', 'salma.' + suffix + '@example.com');",
+                      "pm.collectionVariables.set('autrePassagerEmail', 'salma.autre.' + suffix + '@example.com');"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 201', function () { pm.response.to.have.status(201); });",
+                      "pm.test('Profil retourne', function () { const b = pm.response.json(); pm.expect(b.id).to.be.a('number'); ['lastName','firstName','email','phone'].forEach(k => pm.expect(b[k]).to.be.a('string')); });",
+                      "if (pm.response.code === 201) pm.collectionVariables.set('passagerId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "201 - Creer un second passager avec un email distinct",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Sara\",\n  \"email\": \"{{autrePassagerEmail}}\",\n  \"phone\": \"0612345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 201', function () { pm.response.to.have.status(201); });",
+                      "pm.test('Profil retourne', function () { const b = pm.response.json(); pm.expect(b.id).to.be.a('number'); ['lastName','firstName','email','phone'].forEach(k => pm.expect(b[k]).to.be.a('string')); });",
+                      "if (pm.response.code === 201) { const id = pm.response.json().id; pm.collectionVariables.set('autrePassagerId', id); pm.test('Identifiants distincts', function () { pm.expect(String(id)).not.to.eql(String(pm.collectionVariables.get('passagerId'))); }); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "409 - Email deja utilise",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0612345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 409', function () { pm.response.to.have.status(409); });",
+                      "pm.test('Message de conflit', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(409); pm.expect(b.detail).to.eql(\"Cet email est deja utilise par un passager\"); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Nom vide",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0612345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Prenom blanc",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"   \",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0612345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Email invalide",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"salma\",\n  \"phone\": \"0612345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Email null",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": null,\n  \"phone\": \"0612345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Telephone absent",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Champs obligatoires absents",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - JSON malforme",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"lastName\":",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Corps absent",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - lastName depasse 255 caracteres",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0612345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - firstName depasse 255 caracteres",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0612345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - email depasse 255 caracteres",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\n  \"phone\": \"0612345678\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - phone depasse 255 caracteres",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "02 - Consultation",
+          "item": [
+            {
+              "name": "200 - Consulter Salma",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 200', function () { pm.response.to.have.status(200); });",
+                      "pm.test('Profil retourne', function () { const b = pm.response.json(); pm.expect(b.id).to.be.a('number'); ['lastName','firstName','email','phone'].forEach(k => pm.expect(b[k]).to.be.a('string')); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "404 - Profil absent",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/{{absentId}}",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 404', function () { pm.response.to.have.status(404); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(404); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Identifiant invalide",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/abc",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "03 - Liste",
+          "item": [
+            {
+              "name": "200 - Liste des passagers",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 200', function () { pm.response.to.have.status(200); });",
+                      "pm.test('Liste retournee', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "04 - Recherche par email",
+          "item": [
+            {
+              "name": "200 - Email complet",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/search?email={{passagerEmail}}",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 200', function () { pm.response.to.have.status(200); });",
+                      "pm.test('Liste retournee', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                      "pm.test('Emails correspondants', function () { const results = pm.response.json(); pm.expect(results.length).to.be.greaterThan(0); results.forEach(b => pm.expect(b.email.toLowerCase()).to.include('salma')); });",
+                      "pm.test('Un seul profil pour cet email', function () { pm.expect(pm.response.json()).to.have.lengthOf(1); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "200 - Email partiel",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/search?email=salma",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 200', function () { pm.response.to.have.status(200); });",
+                      "pm.test('Liste retournee', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                      "pm.test('Emails correspondants', function () { const results = pm.response.json(); pm.expect(results.length).to.be.greaterThan(0); results.forEach(b => pm.expect(b.email.toLowerCase()).to.include('salma')); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "200 - Majuscules",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/search?email=SALMA",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 200', function () { pm.response.to.have.status(200); });",
+                      "pm.test('Liste retournee', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                      "pm.test('Emails correspondants', function () { const results = pm.response.json(); pm.expect(results.length).to.be.greaterThan(0); results.forEach(b => pm.expect(b.email.toLowerCase()).to.include('salma')); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "200 - Espaces autour",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/search?email=%20salma%20",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 200', function () { pm.response.to.have.status(200); });",
+                      "pm.test('Liste retournee', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                      "pm.test('Emails correspondants', function () { const results = pm.response.json(); pm.expect(results.length).to.be.greaterThan(0); results.forEach(b => pm.expect(b.email.toLowerCase()).to.include('salma')); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "200 - Aucun resultat",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/search?email=zzzintrouvable999",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 200', function () { pm.response.to.have.status(200); });",
+                      "pm.test('Liste vide', function () { pm.expect(pm.response.json()).to.eql([]); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Email vide",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/search?email=",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Email blanc",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/search?email=%20%20%20",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Email absent",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/search",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "05 - Modification",
+          "item": [
+            {
+              "name": "200 - Modifier son profil",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "{{passagerId}}"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0699999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 200', function () { pm.response.to.have.status(200); });",
+                      "pm.test('Profil retourne', function () { const b = pm.response.json(); pm.expect(b.id).to.be.a('number'); ['lastName','firstName','email','phone'].forEach(k => pm.expect(b[k]).to.be.a('string')); });",
+                      "pm.test('Identifiant conserve et telephone actualise', function () { const b = pm.response.json(); pm.expect(String(b.id)).to.eql(String(pm.collectionVariables.get('passagerId'))); pm.expect(b.phone).to.eql('0699999999'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "200 - Relire la modification",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 200', function () { pm.response.to.have.status(200); });",
+                      "pm.test('Modification persistee', function () { pm.expect(pm.response.json().phone).to.eql('0699999999'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "403 - Autre proprietaire",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "{{autrePassagerId}}"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0699999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 403', function () { pm.response.to.have.status(403); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(403); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "404 - Profil absent",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "{{absentId}}"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/{{absentId}}",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0699999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 404', function () { pm.response.to.have.status(404); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(404); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Header absent",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0699999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Header non numerique",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "abc"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0699999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Id non numerique",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "{{passagerId}}"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/abc",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0699999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Nom vide",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "{{passagerId}}"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{passagerEmail}}\",\n  \"phone\": \"0699999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - Email invalide",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "{{passagerId}}"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"salma\",\n  \"phone\": \"0699999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - PUT incomplet",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "{{passagerId}}"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"phone\": \"0699999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "400 - JSON malforme",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "{{passagerId}}"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"phone\":",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 400', function () { pm.response.to.have.status(400); });",
+                      "pm.test('Format ProblemDetail', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(400); pm.expect(b.title).to.be.a('string'); pm.expect(b.detail).to.be.a('string'); pm.expect(b.instance).to.be.a('string'); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "409 - Email utilise par un autre passager",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "{{passagerId}}"
+                  }
+                ],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": "",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"{{autrePassagerEmail}}\",\n  \"phone\": \"0699999999\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 409', function () { pm.response.to.have.status(409); });",
+                      "pm.test('Message de conflit', function () { const b = pm.response.json(); pm.expect(b.status).to.eql(409); pm.expect(b.detail).to.eql(\"Cet email est deja utilise par un autre passager\"); pm.expect(b.timestamp).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "200 - Profil inchange apres les refus",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "http://localhost:8080/api/passagers/{{passagerId}}",
+                "description": ""
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status HTTP 200', function () { pm.response.to.have.status(200); });",
+                      "pm.test('Refus sans modification', function () { const b = pm.response.json(); pm.expect(b.lastName).to.eql('Bennani'); pm.expect(b.email).to.eql(pm.collectionVariables.get('passagerEmail')); pm.expect(b.phone).to.eql('0699999999'); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

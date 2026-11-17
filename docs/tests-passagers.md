@@ -28,8 +28,11 @@ POST `{{baseUrl}}/api/passagers`, corps A :
 ```
 
 201 : les quatre champs sont retournes avec un id genere. Copier cet id dans passagerId.
-Repeter exactement le POST : 201 avec un autre id, car l'email n'est pas unique.
-Copier le second id dans autrePassagerId.
+Repeter exactement le POST : 409, Cet email est deja utilise par un passager.
+Pour creer un second profil, changer firstName en Sara et email en
+salma.autre@example.com : 201. Copier le second id dans autrePassagerId.
+Si ces emails existent deja, choisir deux nouvelles adresses distinctes pour
+les creations valides et adapter les recherches et modifications ci-dessous.
 
 Dupliquer la requete pour chaque cas suivant, en repartant du corps A :
 
@@ -95,8 +98,9 @@ Header `X-Passager-Id: {{passagerId}}`. Corps B :
 ```
 
 200 : meme id et telephone actualise. Confirmer avec GET et en base.
-Le nombre de lignes doit rester identique. Le partage de l'email du second
-passager est accepte ; il n'y a pas de test 409 pour les emails passagers.
+Le nombre de lignes doit rester identique. Garder son propre email est autorise.
+Remplacer email par celui du second passager : 409,
+Cet email est deja utilise par un autre passager. Le profil doit rester inchange.
 
 Repartir de cette requete valide pour chaque refus :
 
@@ -109,6 +113,7 @@ Repartir de cette requete valide pour chaque refus :
 | Id invalide | URL finit par abc, header valide | 400 |
 | Nom vide | lastName = "" dans corps B | 400 |
 | Email invalide | email = "salma" dans corps B | 400 |
+| Email d'un autre passager | email = "salma.autre@example.com" dans corps B | 409 |
 | PUT incomplet | envoyer seulement {"phone":"0699999999"} | 400, autres champs obligatoires |
 | JSON malforme | envoyer {"phone": | 400 |
 
