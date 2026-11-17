@@ -1,0 +1,362 @@
+{
+  "info": {
+    "name": "Covoiturage - Simple",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection simple Conducteurs et Passagers. API : localhost:8080. Sans variables ni scripts. Lancer PostgreSQL et l API normalement. Les ids 1/2 supposent des profils existants ; les remplacer manuellement si besoin. POST cree un nouvel id, pas obligatoirement 1. Les emails sont uniques par type de profil. Chaque nom indique le status attendu. Aucun ordre automatique requis sauf les tests de doublons apres leur creation valide."
+  },
+  "item": [
+    {
+      "name": "Conducteurs",
+      "description": "URLs et identifiants ecrits directement. Aucun script ni variable. Les ids 1 et 2 sont des exemples a adapter manuellement aux donnees existantes.",
+      "item": [
+        {
+          "name": "Creer - 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/conducteurs",
+            "description": "Attendu : 201 avec un id genere. Si cet email existe deja, choisir un nouvel email pour ce test (et un nouveau permis pour le conducteur).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Alami\",\n  \"firstName\": \"Hamid\",\n  \"email\": \"hamid.nouveau@example.com\",\n  \"phone\": \"0612345678\",\n  \"licenseNumber\": \"DEMO2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consulter id 1 - 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/conducteurs/1",
+            "description": "Attendu : 200 si le profil 1 existe. Sinon utiliser manuellement un id existant."
+          }
+        },
+        {
+          "name": "Liste - 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/conducteurs",
+            "description": "Attendu : 200 et un tableau JSON. Une liste vide retourne []."
+          }
+        },
+        {
+          "name": "Rechercher - 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/conducteurs/search?keyword=Alami",
+            "description": "Attendu : 200 et les correspondances, ou [] si aucune. Recherche partielle sans distinction de casse."
+          }
+        },
+        {
+          "name": "Modifier id 1 - 200",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "url": "http://localhost:8080/api/conducteurs/1",
+            "description": "Attendu : 200, meme id et telephone modifie. Le header represente le proprietaire. Adapter email et permis au profil 1 ou choisir des valeurs disponibles.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Alami\",\n  \"firstName\": \"Hamid\",\n  \"email\": \"hamid@example.com\",\n  \"phone\": \"0699999999\",\n  \"licenseNumber\": \"AB123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Creation nom vide - 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/conducteurs",
+            "description": "Attendu : 400, titre Erreur de validation et message Le nom est obligatoire.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"\",\n  \"firstName\": \"Hamid\",\n  \"email\": \"hamid.nouveau@example.com\",\n  \"phone\": \"0612345678\",\n  \"licenseNumber\": \"DEMO2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Creation email deja utilise - 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/conducteurs",
+            "description": "Executer apres la creation valide avec le meme email. Attendu : 409. Si les valeurs du premier POST ont ete changees, les recopier ici.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Alami\",\n  \"firstName\": \"Hamid\",\n  \"email\": \"hamid.nouveau@example.com\",\n  \"phone\": \"0612345678\",\n  \"licenseNumber\": \"DEMO2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Profil absent - 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/conducteurs/999999",
+            "description": "Attendu : 404 si cet identifiant est absent."
+          }
+        },
+        {
+          "name": "Modification autre proprietaire - 403",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Conducteur-Id",
+                "value": "2"
+              }
+            ],
+            "url": "http://localhost:8080/api/conducteurs/1",
+            "description": "Attendu : 403 si le profil 1 existe. Les donnees doivent rester inchangees.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Alami\",\n  \"firstName\": \"Hamid\",\n  \"email\": \"hamid@example.com\",\n  \"phone\": \"0699999999\",\n  \"licenseNumber\": \"AB123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Creation permis deja utilise - 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/conducteurs",
+            "description": "Apres la creation valide : garder son permis et utiliser un email disponible. Attendu : 409 pour le permis deja utilise.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Alami\",\n  \"firstName\": \"Hamid\",\n  \"email\": \"hamid.autre@example.com\",\n  \"phone\": \"0612345678\",\n  \"licenseNumber\": \"DEMO2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Passagers",
+      "description": "URLs et identifiants ecrits directement. Aucun script ni variable. Les ids 1 et 2 sont des exemples a adapter manuellement aux donnees existantes.",
+      "item": [
+        {
+          "name": "Creer - 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/passagers",
+            "description": "Attendu : 201 avec un id genere. Si cet email existe deja, choisir un nouvel email pour ce test (et un nouveau permis pour le conducteur).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"salma.nouvelle@example.com\",\n  \"phone\": \"0623456789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consulter id 1 - 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/passagers/1",
+            "description": "Attendu : 200 si le profil 1 existe. Sinon utiliser manuellement un id existant."
+          }
+        },
+        {
+          "name": "Liste - 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/passagers",
+            "description": "Attendu : 200 et un tableau JSON. Une liste vide retourne []."
+          }
+        },
+        {
+          "name": "Rechercher - 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/passagers/search?email=salma",
+            "description": "Attendu : 200 et les correspondances, ou [] si aucune. Recherche partielle sans distinction de casse."
+          }
+        },
+        {
+          "name": "Modifier id 1 - 200",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Passager-Id",
+                "value": "1"
+              }
+            ],
+            "url": "http://localhost:8080/api/passagers/1",
+            "description": "Attendu : 200, meme id et telephone modifie. Le header represente le proprietaire. Adapter email et permis au profil 1 ou choisir des valeurs disponibles.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"salma@example.com\",\n  \"phone\": \"0699999999\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Creation nom vide - 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/passagers",
+            "description": "Attendu : 400, titre Erreur de validation et message Le nom est obligatoire.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"\",\n  \"firstName\": \"Salma\",\n  \"email\": \"salma.nouvelle@example.com\",\n  \"phone\": \"0623456789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Creation email deja utilise - 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/passagers",
+            "description": "Executer apres la creation valide avec le meme email. Attendu : 409. Si les valeurs du premier POST ont ete changees, les recopier ici.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"salma.nouvelle@example.com\",\n  \"phone\": \"0623456789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Profil absent - 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/passagers/999999",
+            "description": "Attendu : 404 si cet identifiant est absent."
+          }
+        },
+        {
+          "name": "Modification autre proprietaire - 403",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Passager-Id",
+                "value": "2"
+              }
+            ],
+            "url": "http://localhost:8080/api/passagers/1",
+            "description": "Attendu : 403 si le profil 1 existe. Les donnees doivent rester inchangees.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Bennani\",\n  \"firstName\": \"Salma\",\n  \"email\": \"salma@example.com\",\n  \"phone\": \"0699999999\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
