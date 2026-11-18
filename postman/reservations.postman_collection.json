@@ -802,7 +802,7 @@
                 "method": "GET",
                 "url": "http://localhost:8080/api/trajets/1",
                 "header": [],
-                "description": "Attendu statut COMPLET et offeredSeats=4. remainingSeats ne figure pas encore dans COV-13. La table reservations doit contenir exactement 3 CONFIRMEE pour ce trajet, somme nombrePlaces=4."
+                "description": "Attendu statut COMPLET, offeredSeats=4 et remainingSeats=0. La table reservations contient exactement 3 CONFIRMEE, somme nombrePlaces=4. Les points restent ordonnes."
               }
             }
           ]
