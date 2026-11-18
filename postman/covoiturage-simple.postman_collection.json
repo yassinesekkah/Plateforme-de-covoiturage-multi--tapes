@@ -4355,6 +4355,751 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Validation brief - 11 scenarios COV-20",
+      "description": "Lire docs/scenarios-validation-brief.md, partie mode emploi Postman. Executer les dossiers de 00 a 11 dans l ordre. Aucune variable ni script. Remplacer manuellement tous les ids exemples, les dates et les valeurs uniques des profils. T1/T3 partent environ dans 3 jours ; T2 part dans environ 2 heures. Capacite du vehicule 4, mais 3 places proposees. Chaque requete contient son resultat attendu. Ne pas lancer toute la collection avec Runner sans adapter les donnees entre les preparations.",
+      "item": [
+        {
+          "name": "00 - Preparation des donnees",
+          "description": "Creer les deux conducteurs, trois passagers et deux vehicules. Changer emails/permis/immatriculations si deja utilises. Noter les ids apres chaque 201 et les reporter dans les requetes suivantes. Publier T1 une seule fois. Les ids ne sont pas forces par ces requetes.",
+          "item": [
+            {
+              "name": "Creer conducteur Hamid - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Noter id conducteur Hamid, exemple 1. Email et permis uniques.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Hamid\",\n  \"lastName\": \"Alami\",\n  \"email\": \"cov20.hamid@example.com\",\n  \"phone\": \"0600000001\",\n  \"licenseNumber\": \"COV20-HAMID-001\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Creer conducteur Omar - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Noter id conducteur Omar, exemple 2. Email et permis uniques.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Omar\",\n  \"lastName\": \"Bennani\",\n  \"email\": \"cov20.omar@example.com\",\n  \"phone\": \"0600000002\",\n  \"licenseNumber\": \"COV20-OMAR-001\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Creer passager Salma - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Noter id passager Salma, exemple 1. Email unique.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Salma\",\n  \"lastName\": \"Test\",\n  \"email\": \"cov20.salma@example.com\",\n  \"phone\": \"0600000010\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Creer passager Karim - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Noter id passager Karim, exemple 2. Email unique.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Karim\",\n  \"lastName\": \"Test\",\n  \"email\": \"cov20.karim@example.com\",\n  \"phone\": \"0600000011\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Creer passager Imane - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Noter id passager Imane, exemple 3. Email unique.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Imane\",\n  \"lastName\": \"Test\",\n  \"email\": \"cov20.imane@example.com\",\n  \"phone\": \"0600000012\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Creer vehicule du conducteur 1 - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Remplacer conducteur 1 dans URL et header. Capacite 4. Noter id vehicule, exemple 1.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"COV20-001\",\n  \"color\": \"Blanc\",\n  \"capacity\": 4\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Creer vehicule du conducteur 2 - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/2/vehicules",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "2"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Remplacer conducteur 2 dans URL et header. Capacite 4. Noter id vehicule, exemple 2.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"COV20-002\",\n  \"color\": \"Blanc\",\n  \"capacity\": 4\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Publier trajet principal T1 - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Adapter vehicule de Hamid et toutes les dates : depart environ dans 3 jours a 17:00. PUBLIE, 3 places restantes. Noter id T1 (exemple 1) et points Rabat/Casablanca/Settat/Marrakech (exemples 1/2/3/4).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2030-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2030-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2030-12-01T19:15:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2030-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "01 - Salma reserve Settat vers Marrakech",
+          "description": "T1 doit etre PUBLIE, sans reservation, avec 3 places restantes.",
+          "item": [
+            {
+              "name": "Salma reserve une place - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Adapter Salma, T1 et points Settat/Marrakech. Montant 50.00 = (120 - 70) x 1, statut CONFIRMEE. Noter R1 (exemple 1).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 3,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "HTTP attendu : 200. T1 PUBLIE, offeredSeats 3, remainingSeats 2."
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 - Recherche dans le mauvais sens",
+          "description": "Utiliser la date reelle du depart de T1. Aucun header ni body.",
+          "item": [
+            {
+              "name": "Rechercher Settat vers Casablanca - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Settat&arrivalCity=Casablanca&date=2030-12-01&seats=1&page=0&size=10",
+                "header": [],
+                "description": "HTTP attendu : 200. T1 absent de content : ordre Settat apres Casablanca. Content peut contenir d autres trajets dans le bon sens. Aucun changement de donnees."
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 - Karim reserve deux places",
+          "description": "T1 doit avoir encore 2 places disponibles.",
+          "item": [
+            {
+              "name": "Karim reserve Casablanca vers Marrakech - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/2/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Montant 160.00 = (120 - 40) x 2, reservation CONFIRMEE. Noter R2 (exemple 2).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "HTTP attendu : 200. T1 COMPLET, offeredSeats 3, remainingSeats 0."
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 - Imane reserve sur trajet complet",
+          "description": "Executer avant annulation Karim : T1 doit etre COMPLET.",
+          "item": [
+            {
+              "name": "Imane essaie de reserver une place - 409",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/3/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "3"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 409. Refus : seul un trajet PUBLIE peut etre reserve. Aucune reservation Imane ajoutee. R1/R2 inchangees.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 1,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "HTTP attendu : 200. T1 toujours COMPLET, remainingSeats 0."
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 - Karim annule trois jours avant",
+          "description": "Depart de T1 encore environ 3 jours plus tard, delai superieur a 24 h.",
+          "item": [
+            {
+              "name": "Karim annule R2 - 204",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/2/reservations/2/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "HTTP attendu : 204. Remplacer passager et vrai id R2. Sans body. Corps vide ; R2 ANNULEE, R1 CONFIRMEE. Deux places liberees."
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "HTTP attendu : 200. T1 redevient PUBLIE, remainingSeats 2."
+              }
+            },
+            {
+              "name": "Verifier historique passager - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers/2/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "HTTP attendu : 200. R2 reste dans historique, statut ANNULEE, montantTotal 160.00. Ses ids, date, points et nombrePlaces ne changent pas."
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 - Montee apres descente",
+          "description": "Executer apres scenario 05 pour que T1 soit PUBLIE ; sinon 409 au lieu du 400 recherche.",
+          "item": [
+            {
+              "name": "Imane monte Marrakech et descend Settat - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/3/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "3"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 400. Refus : la montee doit preceder la descente. Aucune reservation ajoutee.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 4,\n  \"descenteId\": 3,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "HTTP attendu : 200. T1 toujours PUBLIE, remainingSeats 2."
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 - Depassement capacite du vehicule",
+          "description": "Le vehicule doit appartenir a Hamid et avoir une capacite de 4. Dates futures et parcours valides.",
+          "item": [
+            {
+              "name": "Hamid propose cinq places - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 400. Erreur de capacite : 5 > 4. Aucun trajet ni point ajoute. T1 inchange.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 5,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2030-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2030-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2030-12-01T19:15:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2030-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 - Vehicule d un autre conducteur",
+          "description": "Vehicule 2 existe et appartient a Omar ; URL/header restent ceux de Hamid.",
+          "item": [
+            {
+              "name": "Hamid utilise le vehicule de Omar - 403",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 403. Refus proprietaire vehicule. Aucun trajet ni point ajoute. Ne pas utiliser un vehicule inexistant : cela donnerait 404.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 2,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2030-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2030-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2030-12-01T19:15:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2030-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 - Terminer avant depart",
+          "description": "T1 est toujours PUBLIE et son depart est futur. Le brief donne le jour J avant 17:00 ; ce test HTTP verifie la meme condition avant depart, sans attendre le jour J. L heure exacte peut etre verifiee par horloge fixe en test unitaire.",
+          "item": [
+            {
+              "name": "Hamid essaie de terminer T1 - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "HTTP attendu : 409. Sans body. Refus avant depart ; R1 CONFIRMEE et R2 ANNULEE inchangees."
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "HTTP attendu : 200. T1 PUBLIE, remainingSeats 2, depart inchange."
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 - Annulation deux heures avant depart",
+          "description": "Preparation sur un nouveau T2. IMPORTANT : remplacer ses quatre dates/heures AVANT publication : depart Rabat dans environ 2 heures, puis Casablanca +1h15, Settat +2h15 et Marrakech +4h30 depuis Rabat. Le body conserve des dates exemples a remplacer. Ne pas modifier T1.",
+          "item": [
+            {
+              "name": "Preparation - Publier T2 depart proche - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Dates exemples a remplacer par maintenant +2h pour Rabat, puis heures croissantes. Noter id T2 (exemple 2) et points (exemples 5/6/7/8). PUBLIE, 3 places.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2030-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2030-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2030-12-01T19:15:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2030-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Preparation - Salma reserve sur T2 - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Adapter T2 et ses points Settat/Marrakech. Montant 50.00, CONFIRMEE, 2 places restantes. Noter id R3 (exemple 3).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 2,\n  \"monteeId\": 7,\n  \"descenteId\": 8,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Salma essaie d annuler R3 - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/3/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "HTTP attendu : 409. Sans body. Delai 24h depasse car depart Rabat dans environ 2h. R3 reste CONFIRMEE avec montant 50.00, aucun changement."
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/2",
+                "header": [],
+                "description": "HTTP attendu : 200. T2 reste PUBLIE, remainingSeats 2. Si PATCH retourne 204, verifier que les dates exemples ont bien ete remplacees AVANT publication."
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 - Annuler trajet et ses deux reservations",
+          "description": "Preparation sur un nouveau T3, 3 places et depart futur environ dans 3 jours. Executer les trois creations puis le controle avant annulation. Ne pas annuler T1 ou T2.",
+          "item": [
+            {
+              "name": "Preparation - Publier T3 - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Adapter vehicule et dates futures. Noter id T3 (exemple 3) et points (exemples 9/10/11/12).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2030-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2030-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2030-12-01T19:15:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2030-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Preparation - Salma reserve sur T3 - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Montant 50.00, CONFIRMEE. Noter R4 (exemple 4).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 3,\n  \"monteeId\": 11,\n  \"descenteId\": 12,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Preparation - Karim reserve sur T3 - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/2/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "HTTP attendu : 201. Montant 160.00, CONFIRMEE. Noter R5 (exemple 5). T3 devient COMPLET.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 3,\n  \"monteeId\": 10,\n  \"descenteId\": 12,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/3",
+                "header": [],
+                "description": "HTTP attendu : 200. AVANT annulation : T3 COMPLET, remainingSeats 0."
+              }
+            },
+            {
+              "name": "Hamid annule T3 - 204",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/3/annuler",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "HTTP attendu : 204. Sans body, corps vide. T3 ANNULE et R4/R5 ANNULEE ensemble. Montants 50.00 et 160.00, ids et autres champs conserves."
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/3",
+                "header": [],
+                "description": "HTTP attendu : 200. APRES annulation : T3 ANNULE, remainingSeats 3. Ce nombre ne permet pas de reserver un trajet ANNULE."
+              }
+            },
+            {
+              "name": "Verifier les deux reservations annulees - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/3/reservations",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "HTTP attendu : 200. Exactement R4 et R5 sur ce T3 neuf, toutes deux ANNULEE. Montants 50.00 et 160.00 ; aucune suppression. T1 et T2 restent inchanges."
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
