@@ -1,0 +1,163 @@
+{
+  "info": {
+    "name": "Covoiturage - Reservations conducteur",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Reservations - Lecture conducteur COV-16",
+      "description": "Aucun body. Adapter manuellement tous les ids. Conducteurs 1 et 2 existent ; trajet 1 appartient au conducteur 1 ; trajet 2 aussi, mais sans reservations pour le test de liste vide. Les chiffres sont des exemples. La lecture inclut CONFIRMEE et ANNULEE et reste disponible pour les trajets termines/annules.",
+      "item": [
+        {
+          "name": "Reservations de mon trajet - 200",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/1/reservations",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Liste du trajet 1 uniquement, avec passagerId, trajet, montee/descente et villes/heures, places, montant, date et statut. Tri dateReservation puis id decroissants."
+          }
+        },
+        {
+          "name": "Mon trajet sans reservations - 200",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/2/reservations",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Trajet 2 doit exister, appartenir au conducteur 1 et ne pas avoir de reservations. Attendu []."
+          }
+        },
+        {
+          "name": "Autre acteur - 403",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/1/reservations",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "2"
+              }
+            ],
+            "description": "Conducteur 1 existe, header 2 different : refus avant lecture des reservations."
+          }
+        },
+        {
+          "name": "Trajet autre proprietaire - 403",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/2/trajets/1/reservations",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "2"
+              }
+            ],
+            "description": "Conducteur 2 existe mais trajet 1 appartient au conducteur 1 : refus."
+          }
+        },
+        {
+          "name": "Conducteur absent - 404",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/999999/trajets/1/reservations",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "999999"
+              }
+            ],
+            "description": "Conducteur 999999 suppose absent ; adapter au besoin."
+          }
+        },
+        {
+          "name": "Trajet absent - 404",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/999999/reservations",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Conducteur 1 existe ; trajet 999999 suppose absent."
+          }
+        },
+        {
+          "name": "Header absent - 400",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/1/reservations",
+            "header": [],
+            "description": "Header X-Conducteur-Id obligatoire."
+          }
+        },
+        {
+          "name": "Header non numerique - 400",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/1/reservations",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "abc"
+              }
+            ],
+            "description": "Header numerique obligatoire."
+          }
+        },
+        {
+          "name": "Conducteur non numerique - 400",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/abc/trajets/1/reservations",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Id conducteur du chemin doit etre numerique."
+          }
+        },
+        {
+          "name": "Trajet non numerique - 400",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/abc/reservations",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Id trajet du chemin doit etre numerique."
+          }
+        },
+        {
+          "name": "Header passager uniquement - 400",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/1/reservations",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Le header passager ne remplace pas le header conducteur."
+          }
+        }
+      ]
+    }
+  ]
+}

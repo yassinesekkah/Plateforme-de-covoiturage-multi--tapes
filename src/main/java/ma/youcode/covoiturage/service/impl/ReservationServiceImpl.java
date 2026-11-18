@@ -2,6 +2,8 @@ package ma.youcode.covoiturage.service.impl;
 
 import ma.youcode.covoiturage.dto.reservation.ReservationCreateRequest;
 import ma.youcode.covoiturage.dto.reservation.ReservationResponse;
+import ma.youcode.covoiturage.dto.reservation.ReservationDetailResponse;
+import java.util.List;
 import ma.youcode.covoiturage.entity.*;
 import ma.youcode.covoiturage.enums.*;
 import ma.youcode.covoiturage.exception.*;
@@ -23,17 +25,20 @@ public class ReservationServiceImpl implements ReservationService {
     private final PointArretRepository pointArretRepository;
     private final ReservationRepository reservationRepository;
     private final ReservationMapper reservationMapper;
+    private final ConducteurRepository conducteurRepository;
 
     public ReservationServiceImpl(PassagerRepository passagerRepository,
                                   TrajetRepository trajetRepository,
                                   PointArretRepository pointArretRepository,
                                   ReservationRepository reservationRepository,
-                                  ReservationMapper reservationMapper) {
+                                  ReservationMapper reservationMapper,
+                                  ConducteurRepository conducteurRepository) {
         this.passagerRepository = passagerRepository;
         this.trajetRepository = trajetRepository;
         this.pointArretRepository = pointArretRepository;
         this.reservationRepository = reservationRepository;
         this.reservationMapper = reservationMapper;
+        this.conducteurRepository = conducteurRepository;
     }
 
     @Override
@@ -101,6 +106,43 @@ public class ReservationServiceImpl implements ReservationService {
         Trajet trajet = trajetRepository.findById(trajetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'identifiant " + trajetId));
         return calculateRemainingSeats(trajet);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservationDetailResponse> getByPassager(Long passagerId, Long actorId) {
+        Passager passager = passagerRepository.findById(passagerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Passager introuvable avec l'identifiant " + passagerId));
+        if (!passager.getId().equals(actorId)) {
+            throw new ForbiddenException("Vous ne pouvez consulter que vos propres reservations");
+        }
+        return reservationRepository.findHistoryByPassagerId(passagerId)
+                .stream()
+                .map(reservationMapper::toDetailResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReservationDetailResponse> getByTrajetForConducteur(
+            Long conducteurId, Long trajetId, Long actorId) {
+        Conducteur conducteur = conducteurRepository.findById(conducteurId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Conducteur introuvable avec l'identifiant " + conducteurId));
+        if (!conducteur.getId().equals(actorId)) {
+            throw new ForbiddenException("Vous ne pouvez consulter que vos propres trajets");
+        }
+        Trajet trajet = trajetRepository.findById(trajetId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Trajet introuvable avec l'identifiant " + trajetId));
+        if (!trajet.getConducteur().getId().equals(conducteurId)) {
+            throw new ForbiddenException("Ce trajet appartient a un autre conducteur");
+        }
+        return reservationRepository.findForConducteurByTrajetId(trajetId, conducteurId)
+                .stream()
+                .map(reservationMapper::toDetailResponse)
+                .toList();
     }
 
     private int calculateRemainingSeats(Trajet trajet) {

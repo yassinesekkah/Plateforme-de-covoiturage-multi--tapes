@@ -2,11 +2,12 @@ package ma.youcode.covoiturage.mapper;
 
 import ma.youcode.covoiturage.dto.reservation.ReservationCreateRequest;
 import ma.youcode.covoiturage.dto.reservation.ReservationResponse;
+import ma.youcode.covoiturage.dto.reservation.ReservationDetailResponse;
 import ma.youcode.covoiturage.entity.Reservation;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = PointArretMapper.class)
 public interface ReservationMapper {
 
     @Mapping(target = "id", ignore = true)
@@ -24,4 +25,7 @@ public interface ReservationMapper {
     @Mapping(target = "monteeId", source = "montee.id")
     @Mapping(target = "descenteId", source = "descente.id")
     ReservationResponse toResponse(Reservation reservation);
+
+    @Mapping(target = "passagerId", source = "passager.id")
+    ReservationDetailResponse toDetailResponse(Reservation reservation);
 }
