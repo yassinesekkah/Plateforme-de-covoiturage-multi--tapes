@@ -4,6 +4,9 @@ import jakarta.validation.Valid;
 import ma.youcode.covoiturage.dto.trajet.TrajetCreateRequest;
 import ma.youcode.covoiturage.dto.trajet.TrajetResponse;
 import ma.youcode.covoiturage.dto.trajet.TrajetDetailResponse;
+import ma.youcode.covoiturage.dto.trajet.TrajetSearchRequest;
+import ma.youcode.covoiturage.dto.trajet.TrajetSearchResponse;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.GetMapping;
 import ma.youcode.covoiturage.service.TrajetService;
 import org.springframework.http.HttpStatus;
@@ -39,5 +42,13 @@ public class TrajetController {
     @GetMapping("/trajets/{id}")
     public ResponseEntity<TrajetDetailResponse> getById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(trajetService.getById(id));
+    }
+
+    @GetMapping("/trajets/search")
+    public ResponseEntity<TrajetSearchResponse> search(
+            @Valid @ModelAttribute TrajetSearchRequest request) {
+        var results = trajetService.search(request);
+        return ResponseEntity.ok(new TrajetSearchResponse(
+                results.getContent(), results.getNumber(), results.getSize(), results.hasNext()));
     }
 }
