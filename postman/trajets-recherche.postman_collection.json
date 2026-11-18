@@ -1,0 +1,570 @@
+{
+  "info": {
+    "name": "Covoiturage - Recherche trajets",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Trajets - Recherche COV-14",
+      "description": "GET sans body ni header acteur. Lire docs/tests-recherche-trajets.md. Adapter manuellement dates et ids. Preparer B09h40DH,C13h25DH,A17h30DH ; executer recherche avant scenario reservations. Les fixtures optionnelles sont deja couvertes dans les tests PostgreSQL.",
+      "item": [
+        {
+          "name": "0 - Preparation",
+          "item": [
+            {
+              "name": "Choisir les passagers - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers",
+                "header": [],
+                "description": "Il faut deux passagers distincts pour le scenario Reservation ; exemples ids 1 et 2."
+              }
+            },
+            {
+              "name": "Choisir le vehicule - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+                "header": [],
+                "description": "Adapter conducteur 1 et choisir son vehicule de capacite au moins 4."
+              }
+            },
+            {
+              "name": "Publier B - depart 09h - segment 40 DH - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Adapter conducteur et vehicule, dates futures. B - depart 09h - segment 40 DH : conserver id du trajet et ids des points. Les ids ne sont pas garantis 1, 2, 3.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 4,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T09:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T10:00:00\",\n      \"priceFromDeparture\": 50\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2026-12-01T11:00:00\",\n      \"priceFromDeparture\": 90\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T12:00:00\",\n      \"priceFromDeparture\": 150\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Publier C - depart 13h - segment 25 DH - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Adapter conducteur et vehicule, dates futures. C - depart 13h - segment 25 DH : conserver id du trajet et ids des points. Les ids ne sont pas garantis 1, 2, 3.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 4,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T13:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T14:00:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2026-12-01T15:00:00\",\n      \"priceFromDeparture\": 65\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T16:00:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Publier A - depart 17h - segment 30 DH - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Adapter conducteur et vehicule, dates futures. A - depart 17h - segment 30 DH : conserver id du trajet et ids des points. Les ids ne sont pas garantis 1, 2, 3.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 4,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:00:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2026-12-01T19:00:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T20:00:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "1 - Recherches et pagination avant reservations",
+          "item": [
+            {
+              "name": "Segment intermediaire - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "Fixtures B,C,A PUBLIE sans reservation. content dans cet ordre, segmentPrice=40,25,30 et remainingSeats=4. page=0,size=10,hasNext=false."
+              }
+            },
+            {
+              "name": "Parcours entier - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Rabat&arrivalCity=Marrakech&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "Les trois trajets correspondent. Prix Rabat-Marrakech : B=150,C=120,A=120."
+              }
+            },
+            {
+              "name": "Casse et espaces - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=%20CASABLANCA%20&arrivalCity=%20settat%20&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "Meme resultat que Casablanca-Settat ; espaces retires et comparaison insensible a la casse."
+              }
+            },
+            {
+              "name": "Prix maximum 30 DH inclus - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&maxPrice=30.00",
+                "header": [],
+                "description": "C a 25 DH et A a 30 DH. B a 40 DH exclu. Le prix est par place."
+              }
+            },
+            {
+              "name": "Deux places prix maximum 30 DH - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=2&maxPrice=30.00",
+                "header": [],
+                "description": "C et A restent presents : le prix maximum est par place, pas le total pour 2 places."
+              }
+            },
+            {
+              "name": "Prix maximum 29.99 DH - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&maxPrice=29.99",
+                "header": [],
+                "description": "Uniquement C a 25 DH."
+              }
+            },
+            {
+              "name": "Prix maximum zero - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&maxPrice=0",
+                "header": [],
+                "description": "content=[] car tous les segments correspondants ont un prix positif."
+              }
+            },
+            {
+              "name": "Quatre places disponibles - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=4",
+                "header": [],
+                "description": "B,C,A presents tant qu aucune reservation n a ete creee."
+              }
+            },
+            {
+              "name": "Cinq places indisponibles - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=5",
+                "header": [],
+                "description": "content=[] ; recherche valide mais aucun trajet n a 5 places."
+              }
+            },
+            {
+              "name": "Sens inverse - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Settat&arrivalCity=Casablanca&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "content=[] : Settat ne precede pas Casablanca."
+              }
+            },
+            {
+              "name": "Meme ville - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Casablanca&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "content=[] : la montee doit preceder la descente."
+              }
+            },
+            {
+              "name": "Ville absente - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=VilleTestAbsenteCOV14&arrivalCity=Settat&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "content=[] si cette ville est absente."
+              }
+            },
+            {
+              "name": "Autre date - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-02&seats=1",
+                "header": [],
+                "description": "content=[] si aucun trajet correspondant ne part ce jour. Adapter la date si d autres fixtures existent."
+              }
+            },
+            {
+              "name": "Page zero taille deux - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&page=0&size=2",
+                "header": [],
+                "description": "content=[B,C],page=0,size=2,hasNext=true."
+              }
+            },
+            {
+              "name": "Page une taille deux - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&page=1&size=2",
+                "header": [],
+                "description": "content=[A],page=1,size=2,hasNext=false."
+              }
+            },
+            {
+              "name": "Page suivante vide - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&page=2&size=2",
+                "header": [],
+                "description": "content=[],page=2,size=2,hasNext=false."
+              }
+            }
+          ]
+        },
+        {
+          "name": "2 - Parametres invalides",
+          "item": [
+            {
+              "name": "departureCity absent - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?arrivalCity=Settat&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "Parametre obligatoire absent : ProblemDetail status=400."
+              }
+            },
+            {
+              "name": "arrivalCity absent - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "Parametre obligatoire absent : ProblemDetail status=400."
+              }
+            },
+            {
+              "name": "date absent - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&seats=1",
+                "header": [],
+                "description": "Parametre obligatoire absent : ProblemDetail status=400."
+              }
+            },
+            {
+              "name": "seats absent - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01",
+                "header": [],
+                "description": "Parametre obligatoire absent : ProblemDetail status=400."
+              }
+            },
+            {
+              "name": "departureCity invalide ( ) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=%20&arrivalCity=Settat&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "arrivalCity invalide () - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "date invalide (abc) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=abc&seats=1",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "date invalide (2026-02-30) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-02-30&seats=1",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "seats invalide (0) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=0",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "seats invalide (-1) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=-1",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "seats invalide (abc) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=abc",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "maxPrice invalide (-1) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&maxPrice=-1",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "maxPrice invalide (30.123) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&maxPrice=30.123",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "maxPrice invalide (10000000000.00) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&maxPrice=10000000000.00",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "maxPrice invalide (abc) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&maxPrice=abc",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "page invalide (-1) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&page=-1",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "page invalide (abc) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&page=abc",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "size invalide (0) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&size=0",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "size invalide (101) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&size=101",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            },
+            {
+              "name": "size invalide (abc) - 400",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&size=abc",
+                "header": [],
+                "description": "Refus de validation/conversion ; aucune recherche executee."
+              }
+            }
+          ]
+        },
+        {
+          "name": "3 - Places et reservations (dans cet ordre)",
+          "item": [
+            {
+              "name": "01 - Reserver deux places sur A - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Remplacer trajetId 1 par le vrai id de A, points 1/2 par Rabat/Casablanca de A, et passager 1 par son vrai id. Reservation sur un autre segment : elle compte quand meme sur tout A.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 1,\n  \"descenteId\": 2,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "02 - Trois places apres reservation - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=3",
+                "header": [],
+                "description": "B,C presents ; A exclu car il ne reste que 2 places."
+              }
+            },
+            {
+              "name": "03 - Deux places apres reservation - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=2",
+                "header": [],
+                "description": "B,C,A presents. remainingSeats de A=2 ; B et C=4."
+              }
+            },
+            {
+              "name": "04 - Reserver les deux dernieres places A - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/2/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "Remplacer trajetId 1 par le vrai id de A, points 3/4 par Settat/Marrakech de A. Passager 2 distinct du premier. A devient COMPLET.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 3,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "05 - Trajet complet exclu - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "Uniquement B et C : A est COMPLET et ne doit plus apparaitre."
+              }
+            },
+            {
+              "name": "06 - Verifier detail A complet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "Remplacer 1 par le vrai id de A. Attendu status=COMPLET,offeredSeats=4,remainingSeats=0."
+              }
+            }
+          ]
+        },
+        {
+          "name": "4 - Fixtures optionnelles",
+          "item": [
+            {
+              "name": "Reservations ANNULEE ignorees - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=3",
+                "header": [],
+                "description": "Fixture optionnelle : B a 1 place CONFIRMEE et 2 places ANNULEE. B doit apparaitre avec remainingSeats=3 pour seats=3. Un endpoint annulation n existe pas encore."
+              }
+            },
+            {
+              "name": "Statuts ANNULE et TERMINE exclus - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1",
+                "header": [],
+                "description": "Fixture optionnelle : autres trajets aux memes villes/date dans les statuts ANNULE et TERMINE. Aucun ne doit apparaitre. Ne pas modifier B,C,A pour ce test."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
