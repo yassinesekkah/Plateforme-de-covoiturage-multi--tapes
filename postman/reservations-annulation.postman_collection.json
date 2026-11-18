@@ -1,0 +1,435 @@
+{
+  "info": {
+    "name": "Covoiturage - Annulation reservation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Reservations - Annulation COV-17",
+      "description": "PATCH sans body. Lire docs/tests-annulation-reservation.md. Adapter tous les ids et dates. Executer refus avant annulation valide, puis scenario dans l ordre. Les cas limites/statuts du dossier 3 demandent leurs propres fixtures.",
+      "item": [
+        {
+          "name": "0 - Preparation",
+          "item": [
+            {
+              "name": "Choisir deux passagers - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers",
+                "header": [],
+                "description": "Choisir deux passagers existants distincts ; adapter ids 1 et 2."
+              }
+            },
+            {
+              "name": "Choisir le vehicule - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+                "header": [],
+                "description": "Adapter conducteur 1 et choisir son vehicule de capacite au moins 4."
+              }
+            },
+            {
+              "name": "Publier trajet futur de quatre places - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Adapter conducteur/vehicule et les dates pour un depart dans PLUS de 24h. Conserver id trajet et ids points ; les chiffres 1..4 sont des exemples.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 4,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:00:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2026-12-01T19:00:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:00:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Reserver deux places passager 1 - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Adapter passager, trajetId et points avec les vrais ids retournes par la publication. Conserver id de reservation. Les deux creations remplissent le trajet de 4 places.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Reserver deux places passager 2 - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/2/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "Adapter passager, trajetId et points avec les vrais ids retournes par la publication. Conserver id de reservation. Les deux creations remplissent le trajet de 4 places.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 3,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "1 - Refus avant annulation",
+          "item": [
+            {
+              "name": "Acteur different - 403",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/1/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "Passager 1 existe, mais acteur du header 2."
+              }
+            },
+            {
+              "name": "Reservation autre passager - 403",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/2/reservations/1/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "Reservation 1 appartient au passager 1 ; passager 2 tente de l annuler avec son propre header."
+              }
+            },
+            {
+              "name": "Reservation absente - 404",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/999999/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Utiliser un id de reservation absent."
+              }
+            },
+            {
+              "name": "Passager absent - 404",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/999999/reservations/1/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "999999"
+                  }
+                ],
+                "description": "Utiliser un passager inexistant dans URL et header."
+              }
+            },
+            {
+              "name": "Header absent - 400",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/1/annuler",
+                "header": [],
+                "description": "Header X-Passager-Id obligatoire."
+              }
+            },
+            {
+              "name": "Header conducteur seulement - 400",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/1/annuler",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Header conducteur ne remplace pas le header passager."
+              }
+            },
+            {
+              "name": "Header non numerique - 400",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/1/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "abc"
+                  }
+                ],
+                "description": "Header numerique obligatoire."
+              }
+            },
+            {
+              "name": "Passager non numerique - 400",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/abc/reservations/1/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Id du chemin doit etre numerique."
+              }
+            },
+            {
+              "name": "Reservation non numerique - 400",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/abc/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Id du chemin doit etre numerique."
+              }
+            },
+            {
+              "name": "Methode DELETE au lieu de PATCH - 405",
+              "request": {
+                "method": "DELETE",
+                "url": "http://localhost:8080/api/passagers/1/reservations/1/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Endpoint annulation accepte PATCH ; ne supprime pas la ligne reservation."
+              }
+            }
+          ]
+        },
+        {
+          "name": "2 - Scenario principal dans l ordre",
+          "item": [
+            {
+              "name": "01 - Trajet complet avant annulation - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "Apres les deux reservations : status=COMPLET,offeredSeats=4,remainingSeats=0. Adapter trajet 1."
+              }
+            },
+            {
+              "name": "02 - Historique avant annulation - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "La reservation a annuler est CONFIRMEE, nombrePlaces=2,montantTotal=160.00. Adapter passager et header."
+              }
+            },
+            {
+              "name": "03 - Annulation valide - 204",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/1/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Reservation 1 du passager 1, trajet dans plus de 24h. Aucun body ni contenu de reponse. Conserver la ligne, nombrePlaces, montant et date ; statut ANNULEE."
+              }
+            },
+            {
+              "name": "04 - Places liberees et trajet rouvert - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "Attendu status=PUBLIE,offeredSeats=4,remainingSeats=2."
+              }
+            },
+            {
+              "name": "05 - Historique conserve reservation ANNULEE - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "La reservation annulee reste presente avec memes id, points, montant 160.00, nombrePlaces=2 et dateReservation."
+              }
+            },
+            {
+              "name": "06 - Conducteur voit les deux statuts - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Les deux reservations restent presentes : premiere ANNULEE, seconde CONFIRMEE. Adapter conducteur/trajet/header."
+              }
+            },
+            {
+              "name": "07 - Deuxieme annulation refusee - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/1/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Rejouer la meme annulation : deja ANNULEE, aucune place supplementaire ne se libere."
+              }
+            },
+            {
+              "name": "08 - Places inchangees apres refus - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "Toujours PUBLIE et remainingSeats=2."
+              }
+            }
+          ]
+        },
+        {
+          "name": "3 - Autres fixtures",
+          "item": [
+            {
+              "name": "Depart dans deux heures - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/3/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Fixture : reservation 3 CONFIRMEE du passager 1 sur trajet PUBLIE/COMPLET partant dans 2h. Adapter ids. Ne pas utiliser la reservation deja annulee du scenario."
+              }
+            },
+            {
+              "name": "Depart dans moins de 24h - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/4/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Fixture : reservation 4 CONFIRMEE sur trajet partant dans 23h59. Adapter ids. La limite exactement 24h est testee automatiquement avec Clock.fixed."
+              }
+            },
+            {
+              "name": "Trajet ANNULE - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/5/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Fixture : reservation 5 encore CONFIRMEE sur un trajet ANNULE, depart dans plus de 24h. Aucun changement de statut du trajet."
+              }
+            },
+            {
+              "name": "Trajet TERMINE - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/6/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Fixture : reservation 6 CONFIRMEE sur un trajet TERMINE. Aucun changement de statut du trajet."
+              }
+            },
+            {
+              "name": "Annuler sur trajet deja PUBLIE - 204",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/7/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Fixture : reservation 7 CONFIRMEE du passager 1 sur trajet PUBLIE avec places libres et depart dans plus de 24h. Reservation devient ANNULEE ; trajet reste PUBLIE."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
