@@ -616,6 +616,70 @@ collection simple. Sans variables ni scripts, ids et dates sont a adapter manuel
 Les endpoints d'historique et d'annulation restent dans les stories suivantes.
 Le detail trajet de COV-13 expose remainingSeats calcule a partir de ces reservations.
 
+## Consulter les reservations et l'historique (COV-16, etapes 1 a 3)
+
+ReservationDetailResponse prepare la lecture des reservations : id, passagerId,
+trajet, montee, descente, nombrePlaces, montantTotal, dateReservation et statut.
+TrajetReservationResponse contient uniquement id, villes de depart/arrivee,
+date de depart et statut du trajet. Les deux points reutilisent PointArretResponse
+(id, ville, ordre, date/heure et prix cumule). Il n'y a pas de nouvelle table.
+
+ReservationMapper.toDetailResponse convertit l'entite vers ce DTO, reutilise
+PointArretMapper et genere la conversion du resume trajet. ReservationResponse,
+utilise pour le POST de creation, conserve sa structure avec les ids seuls.
+Le test PostgreSQL ReservationPersistenceTest verifie ces conversions avec
+reservation CONFIRMEE, ANNULEE et trajet COMPLET. Le mapper ne filtre pas
+l'historique, ne recalcule pas le montant et ne verifie pas le proprietaire.
+GET /api/passagers/{passagerId}/reservations avec le header X-Passager-Id permet
+de consulter toutes ses reservations et son historique. Les CONFIRMEE et ANNULEE
+sont conservees, y compris pour les trajets TERMINE et ANNULE. Le tri est par
+dateReservation decroissante, puis id decroissant en cas d'egalite.
+La reponse 200 est une liste de ReservationDetailResponse ; sans reservation,
+elle vaut []. Passager inexistant : 404 ; acteur different : 403 ; header absent
+ou non numerique, ou id du chemin non numerique : 400. Le header reste une
+simulation d'acteur, pas une authentification securisee.
+
+Le service est transactionnel en lecture seule. findHistoryByPassagerId charge
+trajet, passager, montee et descente via JOIN FETCH. Le test PostgreSQL verifie
+deux requetes SQL au total (verification du passager, puis historique), sans
+requetes supplementaires pendant le mapping ni modification des donnees.
+Les tests couvrent aussi l'isolation entre passagers, les deux statuts, le tri,
+les donnees imbriquees, la liste vide et les refus d'acces.
+
+La collection de lecture passager est `postman/reservations-historique-passager.postman_collection.json`.
+Adapter les ids : le cas de liste vide suppose un passager existant sans reservation,
+et 999999 est suppose absent. Aucun endpoint d'annulation n'est ajoute ici.
+
+GET /api/conducteurs/{conducteurId}/trajets/{trajetId}/reservations avec le header
+X-Conducteur-Id permet au conducteur de lire les reservations d'un de ses trajets.
+Le service verifie l'existence du conducteur (404), la correspondance de l'acteur
+(403), l'existence du trajet (404) et son proprietaire (403), avant de lire la liste.
+Les CONFIRMEE et ANNULEE sont retournees, quel que soit le statut du trajet.
+Le tri et le DTO sont les memes que pour le passager. Un trajet existant sans
+reservation retourne 200 et []. Header absent/non numerique ou ids non numeriques : 400.
+Un header X-Passager-Id seul ne remplace pas X-Conducteur-Id. L'identite reste simulee.
+
+ConducteurReservationController expose cette lecture ; ReservationService utilise
+findForConducteurByTrajetId avec les deux ids dans le filtre et des JOIN FETCH.
+Les tests PostgreSQL verifient trois requetes SQL fixes (conducteur, trajet,
+reservations avec relations), l'absence de N+1 et l'absence d'ecriture.
+Ils couvrent PUBLIE, COMPLET, ANNULE, TERMINE, deux statuts de reservation,
+l'isolation entre trajets, le proprietaire et le tri date/id.
+La collection `postman/reservations-conducteur.postman_collection.json` contient
+les requetes manuelles correspondantes et existe aussi dans la collection simple.
+Verification HTTP du 18 novembre 2026 : les 18 requetes des deux collections
+et sept controles supplementaires ont reussi sur l'API reelle (localhost:8081)
+avec PostgreSQL. Les DTO complets ont ete compares a SQL, y compris dates,
+montants, statuts, points et tri date/id. Les controles couvrent CONFIRMEE,
+ANNULEE, les listes vides, l'isolation entre passagers et trajets, 403/404 et 400,
+ainsi que les lectures conducteur avec trajet PUBLIE, COMPLET, ANNULE et TERMINE.
+Les historiques restent accessibles apres passage du trajet a COMPLET.
+Les GET et les refus n'ont modifie aucune ligne des fixtures.
+Les statuts ANNULEE, ANNULE et TERMINE ont ete prepares via SQL sur les donnees
+temporaires uniquement : leurs futurs endpoints n'ont pas ete testes.
+Les fixtures ont ete nettoyees apres verification. Rapport local non versionne :
+target/cov16-http-results.json.
+
 ## Verifier les erreurs HTTP
 
 Pour activer les endpoints techniques :
