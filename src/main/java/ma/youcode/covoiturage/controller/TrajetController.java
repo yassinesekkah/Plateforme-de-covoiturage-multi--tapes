@@ -61,4 +61,13 @@ public class TrajetController {
         trajetService.cancel(conducteurId, trajetId, actorId);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/conducteurs/{conducteurId}/trajets/{trajetId}/terminer")
+    public ResponseEntity<Void> finish(
+            @PathVariable("conducteurId") Long conducteurId,
+            @PathVariable("trajetId") Long trajetId,
+            @RequestHeader("X-Conducteur-Id") Long actorId) {
+        trajetService.finish(conducteurId, trajetId, actorId);
+        return ResponseEntity.noContent().build();
+    }
 }
