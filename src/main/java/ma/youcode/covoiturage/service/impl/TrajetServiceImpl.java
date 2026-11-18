@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -49,19 +50,22 @@ public class TrajetServiceImpl implements TrajetService {
     private final TrajetMapper trajetMapper;
     private final PointArretMapper pointArretMapper;
     private final ReservationRepository reservationRepository;
+    private final Clock clock;
 
     public TrajetServiceImpl(ConducteurRepository conducteurRepository,
                             VehiculeRepository vehiculeRepository,
                             TrajetRepository trajetRepository,
                             TrajetMapper trajetMapper,
                             PointArretMapper pointArretMapper,
-                            ReservationRepository reservationRepository) {
+                            ReservationRepository reservationRepository,
+                            Clock clock) {
         this.conducteurRepository = conducteurRepository;
         this.vehiculeRepository = vehiculeRepository;
         this.trajetRepository = trajetRepository;
         this.trajetMapper = trajetMapper;
         this.pointArretMapper = pointArretMapper;
         this.reservationRepository = reservationRepository;
+        this.clock = clock;
     }
 
     @Override
@@ -190,6 +194,33 @@ public class TrajetServiceImpl implements TrajetService {
         trajet.setStatus(StatutTrajet.ANNULE);
         log.info("Annulation du trajet {} par le conducteur {} avec {} reservation(s) annulee(s)",
                 trajetId, conducteurId, reservations.size());
+    }
+
+    @Override
+    @Transactional
+    public void finish(Long conducteurId, Long trajetId, Long actorId) {
+        Conducteur conducteur = conducteurRepository.findById(conducteurId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Conducteur introuvable avec l'identifiant " + conducteurId));
+        if (!conducteur.getId().equals(actorId)) {
+            throw new ForbiddenException("Vous ne pouvez terminer que vos propres trajets");
+        }
+
+        Trajet trajet = trajetRepository.findByIdForReservation(trajetId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Trajet introuvable avec l'identifiant " + trajetId));
+        if (!trajet.getConducteur().getId().equals(conducteurId)) {
+            throw new ForbiddenException("Ce trajet appartient a un autre conducteur");
+        }
+        if (trajet.getStatus() != StatutTrajet.PUBLIE && trajet.getStatus() != StatutTrajet.COMPLET) {
+            throw new BusinessException("Seul un trajet PUBLIE ou COMPLET peut etre termine");
+        }
+        if (!LocalDateTime.now(clock).isAfter(trajet.getDepartureTime())) {
+            throw new BusinessException("Le trajet ne peut etre termine qu'apres l'heure de depart");
+        }
+
+        trajet.setStatus(StatutTrajet.TERMINE);
+        log.info("Fin du trajet {} par le conducteur {}", trajetId, conducteurId);
     }
 
     private void validateSeats(Integer offeredSeats, Integer capacity) {
