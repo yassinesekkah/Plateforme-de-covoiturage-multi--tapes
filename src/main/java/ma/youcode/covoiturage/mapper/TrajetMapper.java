@@ -24,5 +24,6 @@ public interface TrajetMapper {
     @Mapping(target = "vehiculeId", source = "vehicule.id")
     TrajetResponse toResponse(Trajet trajet);
 
-    TrajetDetailResponse toDetailResponse(Trajet trajet);
+    @Mapping(target = "remainingSeats", source = "remainingSeats")
+    TrajetDetailResponse toDetailResponse(Trajet trajet, int remainingSeats);
 }
