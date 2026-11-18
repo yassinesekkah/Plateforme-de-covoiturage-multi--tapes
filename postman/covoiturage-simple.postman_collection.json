@@ -3865,6 +3865,496 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Trajets - Terminer COV-19",
+      "description": "Sans variables ni scripts. Lire docs/tests-terminer-trajet.md. Adapter ids et dates. Depart futur: 409 ; apres depart: 204 depuis PUBLIE/COMPLET. Reservations conservees. PATCH sans body.",
+      "item": [
+        {
+          "name": "0 - Preparation",
+          "item": [
+            {
+              "name": "Choisir deux conducteurs - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs",
+                "header": [],
+                "description": "Choisir proprietaire 1 et autre conducteur 2 existants."
+              }
+            },
+            {
+              "name": "Choisir un passager - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers",
+                "header": [],
+                "description": "Choisir passager 1 existant."
+              }
+            },
+            {
+              "name": "Choisir un vehicule - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+                "header": [],
+                "description": "Vehicule 1 du conducteur 1, capacite au moins 4."
+              }
+            },
+            {
+              "name": "Publier trajet PUBLIE - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "Dates futures a adapter. Exemple id trajet 1, points 1 et 2.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 4,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2030-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2030-12-01T18:00:00\",\n      \"priceFromDeparture\": 40\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Reserver une place - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Adapter passager, trajet et points avec les vrais ids. Montant attendu 40 DH.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 1,\n  \"descenteId\": 2,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "1 - Refus avant terminaison",
+          "item": [
+            {
+              "name": "Avant depart - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Trajet 1 PUBLIE avec depart encore futur. Aucun changement."
+              }
+            },
+            {
+              "name": "Autre acteur - 403",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "Conducteur existant 2 different du conducteur 1 dans URL."
+              }
+            },
+            {
+              "name": "Autre proprietaire - 403",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/2/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "Conducteur 2 existe, mais trajet 1 appartient au conducteur 1."
+              }
+            },
+            {
+              "name": "Conducteur absent - 404",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/999999999/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "999999999"
+                  }
+                ],
+                "description": "Choisir un id conducteur absent."
+              }
+            },
+            {
+              "name": "Trajet absent - 404",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/999999999/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Conducteur 1 existe ; choisir trajet absent."
+              }
+            },
+            {
+              "name": "Header absent - 400",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/terminer",
+                "header": [],
+                "description": "Ne pas envoyer X-Conducteur-Id."
+              }
+            },
+            {
+              "name": "Header invalide - 400",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "abc"
+                  }
+                ],
+                "description": "X-Conducteur-Id doit etre numerique."
+              }
+            },
+            {
+              "name": "Header passager seul - 400",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Header conducteur obligatoire."
+              }
+            },
+            {
+              "name": "Conducteur non numerique - 400",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/abc/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Identifiant invalide."
+              }
+            },
+            {
+              "name": "Trajet non numerique - 400",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/abc/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Identifiant invalide."
+              }
+            },
+            {
+              "name": "Methode DELETE - 405",
+              "request": {
+                "method": "DELETE",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Seule PATCH est autorisee ici."
+              }
+            }
+          ]
+        },
+        {
+          "name": "2 - Terminer PUBLIE apres depart",
+          "item": [
+            {
+              "name": "Detail avant terminaison - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "Apres preparation SQL du guide : PUBLIE, depart passe, remainingSeats 3."
+              }
+            },
+            {
+              "name": "Reservations avant - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Conserver id, montant, date et statut CONFIRMEE pour comparer."
+              }
+            },
+            {
+              "name": "Terminer trajet PUBLIE - 204",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Executer seulement apres le depart, ou apres SQL de preparation. Reponse vide."
+              }
+            },
+            {
+              "name": "Detail termine - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "status TERMINE, remainingSeats toujours 3, autres champs inchanges."
+              }
+            },
+            {
+              "name": "Reservations apres - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Reservation toujours CONFIRMEE, montant 40 DH et autres champs inchanges."
+              }
+            },
+            {
+              "name": "Historique passager - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Reservation conservee dans historique."
+              }
+            },
+            {
+              "name": "Terminer une deuxieme fois - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "TERMINE est final."
+              }
+            },
+            {
+              "name": "Annuler trajet TERMINE - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/1/annuler",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "TERMINE ne peut plus etre annule."
+              }
+            },
+            {
+              "name": "Reserver trajet TERMINE - 409",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Aucune nouvelle reservation permise, aucun changement.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 1,\n  \"descenteId\": 2,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "3 - Autres statuts",
+          "item": [
+            {
+              "name": "Publier trajet a remplir - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "Exemple nouveau trajet 2, points 3 et 4.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 1,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2030-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2030-12-01T18:00:00\",\n      \"priceFromDeparture\": 40\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Reserver une place - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Adapter passager, trajet et points avec les vrais ids. Montant attendu 40 DH.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 2,\n  \"monteeId\": 3,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Terminer COMPLET apres depart - 204",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/2/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Verifier COMPLET puis avancer sa date de depart avec le guide SQL. Reservation reste CONFIRMEE."
+              }
+            },
+            {
+              "name": "Verifier COMPLET devenu TERMINE - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/2",
+                "header": [],
+                "description": "status TERMINE et remainingSeats 0."
+              }
+            },
+            {
+              "name": "Terminer trajet ANNULE - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/3/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Choisir un autre trajet deja ANNULE du conducteur 1. Ne pas utiliser le trajet termine."
+              }
+            },
+            {
+              "name": "Terminer PUBLIE sans reservation - 204",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/4/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Choisir un autre trajet PUBLIE sans reservation dont le depart est passe."
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
