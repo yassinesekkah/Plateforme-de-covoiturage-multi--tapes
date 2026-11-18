@@ -1276,6 +1276,39 @@
           }
         }
       ]
+    },
+    {
+      "name": "Trajets - Detail COV-13",
+      "description": "Partie 1 : lecture du detail. Places restantes non encore calculees. Aucun header requis.",
+      "item": [
+        {
+          "name": "Consulter detail trajet - 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/trajets/1",
+            "description": "Remplacer 1 par un id de trajet publie. Attendu : conducteur, vehicule, statut, offeredSeats et pointsArret ordonnes avec heures/prix. offeredSeats ne represente pas les places restantes."
+          }
+        },
+        {
+          "name": "Trajet absent - 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/trajets/999999",
+            "description": "Utiliser un id absent. Attendu : status 404 et detail expliquant que le trajet est introuvable."
+          }
+        },
+        {
+          "name": "Identifiant non numerique - 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/trajets/abc",
+            "description": "Attendu : status 400."
+          }
+        }
+      ]
     }
   ]
 }
