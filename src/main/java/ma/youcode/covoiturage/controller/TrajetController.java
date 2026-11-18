@@ -3,6 +3,8 @@ package ma.youcode.covoiturage.controller;
 import jakarta.validation.Valid;
 import ma.youcode.covoiturage.dto.trajet.TrajetCreateRequest;
 import ma.youcode.covoiturage.dto.trajet.TrajetResponse;
+import ma.youcode.covoiturage.dto.trajet.TrajetDetailResponse;
+import org.springframework.web.bind.annotation.GetMapping;
 import ma.youcode.covoiturage.service.TrajetService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/conducteurs/{conducteurId}/trajets")
+@RequestMapping("/api")
 public class TrajetController {
 
     private final TrajetService trajetService;
@@ -23,7 +25,7 @@ public class TrajetController {
         this.trajetService = trajetService;
     }
 
-    @PostMapping
+    @PostMapping("/conducteurs/{conducteurId}/trajets")
     public ResponseEntity<TrajetResponse> create(
             @PathVariable("conducteurId") Long conducteurId,
             @RequestHeader("X-Conducteur-Id") Long actorId,
@@ -32,5 +34,10 @@ public class TrajetController {
         TrajetResponse response = trajetService.create(conducteurId, actorId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/trajets/{id}")
+    public ResponseEntity<TrajetDetailResponse> getById(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(trajetService.getById(id));
     }
 }

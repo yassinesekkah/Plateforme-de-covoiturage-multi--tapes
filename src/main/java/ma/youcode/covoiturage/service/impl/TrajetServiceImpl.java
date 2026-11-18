@@ -3,6 +3,7 @@ package ma.youcode.covoiturage.service.impl;
 import ma.youcode.covoiturage.dto.trajet.PointArretCreateRequest;
 import ma.youcode.covoiturage.dto.trajet.TrajetCreateRequest;
 import ma.youcode.covoiturage.dto.trajet.TrajetResponse;
+import ma.youcode.covoiturage.dto.trajet.TrajetDetailResponse;
 import ma.youcode.covoiturage.entity.Conducteur;
 import ma.youcode.covoiturage.entity.PointArret;
 import ma.youcode.covoiturage.entity.Trajet;
@@ -98,6 +99,15 @@ public class TrajetServiceImpl implements TrajetService {
         Trajet savedTrajet = trajetRepository.save(trajet);
         log.info("Publication du trajet {} par le conducteur {}", savedTrajet.getId(), conducteurId);
         return trajetMapper.toResponse(savedTrajet);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TrajetDetailResponse getById(Long id) {
+        Trajet trajet = trajetRepository.findDetailById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Trajet introuvable avec l'identifiant " + id));
+        return trajetMapper.toDetailResponse(trajet);
     }
 
     private void validateSeats(Integer offeredSeats, Integer capacity) {
