@@ -97,11 +97,38 @@ class ReservationPersistenceTest {
         assertThat(response.dateReservation()).isEqualTo(saved.getDateReservation());
         assertThat(response.statut()).isEqualTo(StatutReservation.CONFIRMEE);
 
+        var lecture = reservationMapper.toDetailResponse(saved);
+        assertThat(lecture.id()).isEqualTo(id);
+        assertThat(lecture.passagerId()).isEqualTo(passager.getId());
+        assertThat(lecture.nombrePlaces()).isEqualTo(2);
+        assertThat(lecture.montantTotal()).isEqualByComparingTo("240.00");
+        assertThat(lecture.dateReservation()).isEqualTo(saved.getDateReservation());
+        assertThat(lecture.statut()).isEqualTo(StatutReservation.CONFIRMEE);
+        assertThat(lecture.trajet().id()).isEqualTo(trajet.getId());
+        assertThat(lecture.trajet().departureCity()).isEqualTo("Rabat");
+        assertThat(lecture.trajet().arrivalCity()).isEqualTo("Marrakech");
+        assertThat(lecture.trajet().departureTime()).isEqualTo(saved.getTrajet().getDepartureTime());
+        assertThat(lecture.trajet().status()).isEqualTo(StatutTrajet.PUBLIE);
+        assertThat(lecture.montee().id()).isEqualTo(montee.getId());
+        assertThat(lecture.montee().city()).isEqualTo("Rabat");
+        assertThat(lecture.montee().stopOrder()).isZero();
+        assertThat(lecture.montee().passageTime()).isEqualTo(saved.getMontee().getPassageTime());
+        assertThat(lecture.montee().priceFromDeparture()).isEqualByComparingTo("0.00");
+        assertThat(lecture.descente().id()).isEqualTo(descente.getId());
+        assertThat(lecture.descente().city()).isEqualTo("Marrakech");
+        assertThat(lecture.descente().stopOrder()).isEqualTo(1);
+        assertThat(lecture.descente().passageTime()).isEqualTo(saved.getDescente().getPassageTime());
+        assertThat(lecture.descente().priceFromDeparture()).isEqualByComparingTo("120.00");
+
         saved.setStatut(StatutReservation.ANNULEE);
         reservationRepository.flush();
         entityManager.clear();
         assertThat(reservationRepository.findById(id).orElseThrow().getStatut())
                 .isEqualTo(StatutReservation.ANNULEE);
+        var annulee = reservationMapper.toDetailResponse(reservationRepository.findById(id).orElseThrow());
+        assertThat(annulee.statut()).isEqualTo(StatutReservation.ANNULEE);
+        assertThat(annulee.montantTotal()).isEqualByComparingTo("240.00");
+        assertThat(annulee.trajet().id()).isEqualTo(trajet.getId());
         assertThat(reservationService.getRemainingSeats(trajet.getId())).isEqualTo(4);
         assertThat(trajetService.getById(trajet.getId()).remainingSeats()).isEqualTo(4);
 
@@ -120,6 +147,9 @@ class ReservationPersistenceTest {
         assertThat(detail.pointsArret()).extracting(p -> p.city()).containsExactly("Rabat", "Marrakech");
         assertThat(entityManager.find(Trajet.class, trajet.getId()).getStatus())
                 .isEqualTo(StatutTrajet.COMPLET);
+        var complete = reservationMapper.toDetailResponse(reservationRepository.findById(created.id()).orElseThrow());
+        assertThat(complete.trajet().status()).isEqualTo(StatutTrajet.COMPLET);
+        assertThat(complete.statut()).isEqualTo(StatutReservation.CONFIRMEE);
     }
 
     private PointArret point(String city, int order, LocalDateTime time, String price) {
