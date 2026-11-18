@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,5 +51,14 @@ public class TrajetController {
         var results = trajetService.search(request);
         return ResponseEntity.ok(new TrajetSearchResponse(
                 results.getContent(), results.getNumber(), results.getSize(), results.hasNext()));
+    }
+
+    @PatchMapping("/conducteurs/{conducteurId}/trajets/{trajetId}/annuler")
+    public ResponseEntity<Void> cancel(
+            @PathVariable("conducteurId") Long conducteurId,
+            @PathVariable("trajetId") Long trajetId,
+            @RequestHeader("X-Conducteur-Id") Long actorId) {
+        trajetService.cancel(conducteurId, trajetId, actorId);
+        return ResponseEntity.noContent().build();
     }
 }
