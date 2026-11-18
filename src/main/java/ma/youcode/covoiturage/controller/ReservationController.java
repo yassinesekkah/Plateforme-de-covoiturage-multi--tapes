@@ -34,4 +34,13 @@ public class ReservationController {
             @RequestHeader("X-Passager-Id") Long actorId) {
         return ResponseEntity.ok(reservationService.getByPassager(passagerId, actorId));
     }
+
+    @PatchMapping("/{reservationId}/annuler")
+    public ResponseEntity<Void> cancel(
+            @PathVariable("passagerId") Long passagerId,
+            @PathVariable("reservationId") Long reservationId,
+            @RequestHeader("X-Passager-Id") Long actorId) {
+        reservationService.cancel(passagerId, reservationId, actorId);
+        return ResponseEntity.noContent().build();
+    }
 }
