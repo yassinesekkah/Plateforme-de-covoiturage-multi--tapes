@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Clock;
 
 @Service
 public class ReservationServiceImpl implements ReservationService {
@@ -26,19 +27,22 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservationMapper reservationMapper;
     private final ConducteurRepository conducteurRepository;
+    private final Clock clock;
 
     public ReservationServiceImpl(PassagerRepository passagerRepository,
                                   TrajetRepository trajetRepository,
                                   PointArretRepository pointArretRepository,
                                   ReservationRepository reservationRepository,
                                   ReservationMapper reservationMapper,
-                                  ConducteurRepository conducteurRepository) {
+                                  ConducteurRepository conducteurRepository,
+                                  Clock clock) {
         this.passagerRepository = passagerRepository;
         this.trajetRepository = trajetRepository;
         this.pointArretRepository = pointArretRepository;
         this.reservationRepository = reservationRepository;
         this.reservationMapper = reservationMapper;
         this.conducteurRepository = conducteurRepository;
+        this.clock = clock;
     }
 
     @Override
@@ -143,6 +147,51 @@ public class ReservationServiceImpl implements ReservationService {
                 .stream()
                 .map(reservationMapper::toDetailResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void cancel(Long passagerId, Long reservationId, Long actorId) {
+        Passager passager = passagerRepository.findById(passagerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Passager introuvable avec l'identifiant " + passagerId));
+        if (!passager.getId().equals(actorId)) {
+            throw new ForbiddenException("Vous ne pouvez annuler que vos propres reservations");
+        }
+
+        Long trajetId = reservationRepository.findTrajetIdByReservationId(reservationId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Reservation introuvable avec l'identifiant " + reservationId));
+        Trajet trajet = trajetRepository.findByIdForReservation(trajetId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Trajet introuvable avec l'identifiant " + trajetId));
+        Reservation reservation = reservationRepository.findByIdForCancellation(reservationId, trajetId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Reservation introuvable avec l'identifiant " + reservationId));
+
+        if (!reservation.getPassager().getId().equals(passagerId)) {
+            throw new ForbiddenException("Cette reservation appartient a un autre passager");
+        }
+        if (reservation.getStatut() != StatutReservation.CONFIRMEE) {
+            throw new BusinessException("Cette reservation est deja annulee");
+        }
+        if (trajet.getStatus() != StatutTrajet.PUBLIE && trajet.getStatus() != StatutTrajet.COMPLET) {
+            throw new BusinessException("Un trajet ANNULE ou TERMINE ne permet plus d'annuler une reservation");
+        }
+        LocalDateTime limiteAnnulation = trajet.getDepartureTime().minusHours(24);
+        if (LocalDateTime.now(clock).isAfter(limiteAnnulation)) {
+            throw new BusinessException("L'annulation doit etre effectuee au moins 24 heures avant le depart du trajet");
+        }
+
+        reservation.setStatut(StatutReservation.ANNULEE);
+        // Envoyer le changement a la base avant de recalculer les places ; ce n'est pas un commit.
+        reservationRepository.flush();
+        int remainingSeats = calculateRemainingSeats(trajet);
+        if (trajet.getStatus() == StatutTrajet.COMPLET && remainingSeats > 0) {
+            trajet.setStatus(StatutTrajet.PUBLIE);
+        }
+        log.info("Annulation de la reservation {} du passager {} sur le trajet {}",
+                reservationId, passagerId, trajetId);
     }
 
     private int calculateRemainingSeats(Trajet trajet) {
