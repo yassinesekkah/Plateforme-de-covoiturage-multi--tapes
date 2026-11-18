@@ -747,6 +747,43 @@ refus n'ont modifie aucune ligne. Les dates proches et statuts finaux ont ete
 prepares via SQL uniquement sur les fixtures, nettoyees apres execution.
 Les details sont consignes dans le guide Postman annulation.
 
+## Annuler un trajet et ses reservations (COV-18)
+
+PATCH /api/conducteurs/{conducteurId}/trajets/{trajetId}/annuler avec le header
+X-Conducteur-Id, sans body, retourne 204 sans contenu. Le service verifie le
+conducteur (404), l'acteur (403), le trajet (404) et son proprietaire (403).
+Seuls PUBLIE et COMPLET sont autorises ; ANNULE ou TERMINE retournent 409.
+Ce ticket n'impose pas le delai de 24h de l'annulation individuelle passager.
+
+TrajetService.cancel verrouille le trajet avec la meme methode PESSIMISTIC_WRITE
+que creation/annulation des reservations. ReservationRepository.findByTrajetIdAndStatut
+charge les CONFIRMEE du trajet ; une boucle les passe a ANNULEE, puis le trajet
+passe a ANNULE. JPA sauvegarde les changements dans une seule transaction.
+Les lignes et champs historiques sont conserves, les anciennes ANNULEE restent
+intactes et les autres trajets ne sont pas modifies.
+
+remainingSeats du detail peut etre positif pour ANNULE, car il s'agit de la
+difference arithmetique entre places proposees et places CONFIRMEE. Le statut
+interdit toute nouvelle reservation et exclut ce trajet de la recherche.
+
+TrajetCancellationServiceTest et TrajetCancellationControllerTest couvrent les
+succes, proprietaires, ressources absentes, statuts finaux et contrats HTTP.
+TrajetCancellationIntegrationTest utilise PostgreSQL avec deux CONFIRMEE et une
+ancienne ANNULEE pour verifier historique, isolation, rollback et concurrence
+avec creation ou annulation passager. Les verrous sont observes dans PostgreSQL,
+et les fixtures sont nettoyees apres les tests.
+
+La [collection annulation trajet](postman/trajets-annulation.postman_collection.json)
+est aussi dans la collection simple, sans variables ni scripts. Le
+[guide des tests](docs/tests-annulation-trajet.md) explique preparation, ids/dates
+a adapter, refus, historique et verifications SQL.
+
+Verification de COV-18 : suite Java complete de 306 tests reussis, puis 31 requetes
+HTTP sur l'API reelle et PostgreSQL. Les statuts, les champs historiques et
+l'isolation des autres trajets ont ete compares en base. Recherche et creation
+excluent/refusent le trajet annule ; les refus et GET ne modifient pas les donnees.
+Les fixtures ont ete nettoyees. Le guide des tests consigne les details.
+
 ## Verifier les erreurs HTTP
 
 Pour activer les endpoints techniques :
