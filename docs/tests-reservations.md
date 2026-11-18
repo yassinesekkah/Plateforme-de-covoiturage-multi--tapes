@@ -108,11 +108,14 @@ GROUP BY t.id, t.status, t.offered_seats;
 ```
 
 Attendu : COMPLET, offered_seats = 4, places_restantes = 0.
-GET detail n'expose pas encore remainingSeats : ce calcul reste a brancher dans COV-13.
+GET detail expose maintenant remainingSeats. Apres les creations 01, 03 et 05,
+verifier respectivement 3, 1 puis 0 ; offeredSeats reste toujours 4.
 L'annulation et l'historique sont dans des stories suivantes ; aucun endpoint
 pour ces actions n'est ajoute dans cette collection.
 
 ## Verification HTTP effectuee le 18 novembre 2026
+
+Cette execution a precede l'ajout de remainingSeats au detail trajet.
 
 Les 31 requetes de la collection ont ete executees contre une instance reelle
 de l'API sur localhost:8081 avec PostgreSQL local. Les ids et dates ont ete

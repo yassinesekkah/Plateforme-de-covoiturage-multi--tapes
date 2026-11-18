@@ -6,7 +6,7 @@
   "item": [
     {
       "name": "Trajets - Detail COV-13",
-      "description": "Partie 1 : lecture du detail. Places restantes non encore calculees. Aucun header requis.",
+      "description": "Detail complet avec remainingSeats calcule : offeredSeats moins places CONFIRMEE. ANNULEE exclues. Sans variables ni scripts ; adapter les ids aux fixtures et lire les preconditions de chaque requete.",
       "item": [
         {
           "name": "Consulter detail trajet - 200",
@@ -14,7 +14,7 @@
             "method": "GET",
             "header": [],
             "url": "http://localhost:8080/api/trajets/1",
-            "description": "Remplacer 1 par un id de trajet publie. Attendu : conducteur, vehicule, statut, offeredSeats et pointsArret ordonnes avec heures/prix. offeredSeats ne represente pas les places restantes."
+            "description": "Remplacer 1 par un trajet existant. Attendu : conducteur, vehicule, statut, offeredSeats, remainingSeats, pointsArret ordonnes avec heures/prix. remainingSeats est calcule ; offeredSeats reste fixe."
           }
         },
         {
@@ -33,6 +33,42 @@
             "header": [],
             "url": "http://localhost:8080/api/trajets/abc",
             "description": "Attendu : status 400."
+          }
+        },
+        {
+          "name": "Sans reservation - 200",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/trajets/1",
+            "header": [],
+            "description": "Trajet de 4 places sans reservations. Attendu offeredSeats=4 et remainingSeats=4. Executer avant les reservations ; adapter id."
+          }
+        },
+        {
+          "name": "Avec reservations confirmees - 200",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/trajets/1",
+            "header": [],
+            "description": "Trajet de 4 places, somme des places CONFIRMEE=3. Attendu offeredSeats=4, remainingSeats=1, statut PUBLIE. Exemple apres les creations 01 et 03 du scenario Reservation."
+          }
+        },
+        {
+          "name": "Reservations annulees ignorees - 200",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/trajets/2",
+            "header": [],
+            "description": "Fixture optionnelle : trajet de 4 places avec CONFIRMEE=1 place et ANNULEE=2 places. Attendu remainingSeats=3. L endpoint annulation n existe pas encore ; ce cas est deja couvert par les tests PostgreSQL. Ne pas utiliser un trajet sans cette fixture."
+          }
+        },
+        {
+          "name": "Trajet complet - 200",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/trajets/1",
+            "header": [],
+            "description": "Apres le scenario Reservation : offeredSeats=4, remainingSeats=0, statut COMPLET. Parcours et points identiques a la publication."
           }
         }
       ]

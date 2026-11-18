@@ -9,6 +9,8 @@ import ma.youcode.covoiturage.entity.PointArret;
 import ma.youcode.covoiturage.entity.Trajet;
 import ma.youcode.covoiturage.entity.Vehicule;
 import ma.youcode.covoiturage.enums.StatutTrajet;
+import ma.youcode.covoiturage.enums.StatutReservation;
+import ma.youcode.covoiturage.repository.ReservationRepository;
 import ma.youcode.covoiturage.exception.BadRequestException;
 import ma.youcode.covoiturage.exception.ForbiddenException;
 import ma.youcode.covoiturage.exception.ResourceNotFoundException;
@@ -40,17 +42,20 @@ public class TrajetServiceImpl implements TrajetService {
     private final TrajetRepository trajetRepository;
     private final TrajetMapper trajetMapper;
     private final PointArretMapper pointArretMapper;
+    private final ReservationRepository reservationRepository;
 
     public TrajetServiceImpl(ConducteurRepository conducteurRepository,
                             VehiculeRepository vehiculeRepository,
                             TrajetRepository trajetRepository,
                             TrajetMapper trajetMapper,
-                            PointArretMapper pointArretMapper) {
+                            PointArretMapper pointArretMapper,
+                            ReservationRepository reservationRepository) {
         this.conducteurRepository = conducteurRepository;
         this.vehiculeRepository = vehiculeRepository;
         this.trajetRepository = trajetRepository;
         this.trajetMapper = trajetMapper;
         this.pointArretMapper = pointArretMapper;
+        this.reservationRepository = reservationRepository;
     }
 
     @Override
@@ -107,7 +112,10 @@ public class TrajetServiceImpl implements TrajetService {
         Trajet trajet = trajetRepository.findDetailById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Trajet introuvable avec l'identifiant " + id));
-        return trajetMapper.toDetailResponse(trajet);
+        long reservedSeats = reservationRepository.sumPlacesByTrajetIdAndStatut(
+                trajet.getId(), StatutReservation.CONFIRMEE);
+        int remainingSeats = Math.toIntExact(trajet.getOfferedSeats() - reservedSeats);
+        return trajetMapper.toDetailResponse(trajet, remainingSeats);
     }
 
     private void validateSeats(Integer offeredSeats, Integer capacity) {

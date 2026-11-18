@@ -31,7 +31,7 @@ class TrajetControllerTest {
         var detail = new TrajetDetailResponse(10L,
                 new ConducteurTrajetResponse(1L, "Alami", "Yassine", "0600000000"),
                 new VehiculeResponse(2L, "Dacia", "Logan", "TEST", "Blanc", 4, 1L),
-                "Rabat", "Casablanca", time, 3, StatutTrajet.PUBLIE,
+                "Rabat", "Casablanca", time, 3, 1, StatutTrajet.PUBLIE,
                 List.of(new PointArretResponse(20L, "Rabat", 0, time, BigDecimal.ZERO),
                         new PointArretResponse(21L, "Casablanca", 1, time.plusHours(1), new BigDecimal("40.00"))));
         when(service.getById(10L)).thenReturn(detail);
@@ -45,7 +45,7 @@ class TrajetControllerTest {
                 .andExpect(jsonPath("$.status").value("PUBLIE"))
                 .andExpect(jsonPath("$.offeredSeats").value(3))
                 .andExpect(jsonPath("$.pointsArret[1].city").value("Casablanca"))
-                .andExpect(jsonPath("$.remainingSeats").doesNotExist());
+                .andExpect(jsonPath("$.remainingSeats").value(1));
     }
 
     @Test void returns404ForMissingTrip() throws Exception {

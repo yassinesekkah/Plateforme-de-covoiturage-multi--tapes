@@ -13,6 +13,7 @@ public record TrajetDetailResponse(
         String arrivalCity,
         LocalDateTime departureTime,
         Integer offeredSeats,
+        Integer remainingSeats,
         StatutTrajet status,
         List<PointArretResponse> pointsArret
 ) {
