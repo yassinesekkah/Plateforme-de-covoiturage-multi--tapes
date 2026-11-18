@@ -468,6 +468,75 @@ les heures, les prix et offeredSeats sont conserves ; les GET ne modifient pas
 les donnees. Les statuts ANNULEE ont ete prepares uniquement sur les fixtures
 via SQL, sans tester un endpoint d'annulation. Les fixtures ont ete nettoyees.
 
+## Rechercher des trajets (COV-14)
+
+TrajetSearchRequest prepare les parametres de recherche : departureCity et
+arrivalCity (non vides, maximum 255 caracteres), date (LocalDate, format
+yyyy-MM-dd), seats (obligatoire, minimum 1), maxPrice (optionnel, positif ou nul,
+deux decimales et dix chiffres entiers maximum), page (minimum 0) et size (1 a 100).
+Si page et size sont absents, le constructeur du record utilise 0 et 10.
+Le prix maximum concerne une place sur le segment demande, pas le montant pour
+toutes les places. Aucun filtre de date future n'est ajoute au DTO.
+
+TrajetSearchResult represente un resultat de recherche : trajetId, departureTime
+(depart du trajet entier, pour le tri), monteeId/departureCity/monteeTime et
+descenteId/arrivalCity/descenteTime (segment demande), segmentPrice (par place)
+et remainingSeats. La projection prepare un nombre de places de type Long,
+compatible avec la somme JPQL des places reservees. Les entites JPA ne sont pas
+exposees dans ce resultat.
+
+TrajetRepository.search utilise deux jointures sur les points du meme trajet
+(montee et descente), avec ordre montee < ordre descente. La recherche compare les
+villes sans distinction de casse et garde uniquement les trajets PUBLIE.
+Le filtre de date concerne le depart du trajet entier : debut du jour inclus,
+debut du lendemain exclu, meme si la montee a lieu apres minuit.
+
+Une jointure gauche sur les reservations CONFIRMEE permet de calculer les places
+restantes avec SUM et COALESCE (zero en l'absence de reservation). GROUP BY regroupe
+chaque segment et HAVING filtre les places disponibles. Les ANNULEE sont ignorees,
+les places CONFIRMEE comptent sur tout le trajet, independamment de leur segment.
+Le prix maximal optionnel porte sur la difference des prix cumules, par place.
+La requete construit directement TrajetSearchResult, sans charger les entites.
+
+Le resultat est un Slice, trie par depart du trajet puis id pour stabiliser les
+egalites. Chaque page utilise une seule requete SQL, sans COUNT supplementaire ;
+hasNext indique s'il reste une page suivante. Il n'y a pas de total de pages.
+
+TrajetSearchValidationTest verifie les champs obligatoires et les bornes.
+TrajetSearchRepositoryTest utilise PostgreSQL pour verifier segments intermediaires,
+sens, appartenance des points, statuts, prix, reservations, bornes de dates,
+pagination et une seule requete SQL par Slice. Les fixtures de test utilisent
+des villes uniques et sont annulees par rollback pour conserver les donnees locales.
+TrajetService.search verifie les criteres, retire les espaces au debut et a la fin
+des villes et construit la plage de dates [debut du jour, debut du lendemain[.
+Il cree PageRequest avec page/size puis appelle une seule fois le repository.
+La methode est transactionnelle en lecture seule, sans sauvegarde ni mapping
+supplementaire : le repository retourne deja des DTO dans un Slice. Une recherche
+sans resultat ne declenche pas de 404 ; le Slice reste vide. Les tests service simulent le
+repository et verifient criteres invalides, nettoyage, dates, pagination et hasNext.
+GET /api/trajets/search accepte ces parametres dans l'URL, sans body ni header
+d'acteur. Le controller lie les parametres au record avec ModelAttribute et
+demande leur validation avec Valid. La reponse 200 utilise TrajetSearchResponse :
+content (liste de TrajetSearchResult), page, size et hasNext. Sans correspondance,
+content est vide et hasNext vaut false. Aucun totalPages n'est retourne.
+
+```text
+GET /api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-12-01&seats=1&page=0&size=10
+```
+
+Parametres obligatoires absents, date invalide/impossible, chiffres non numeriques
+ou valeurs hors bornes retournent 400 ProblemDetail. La route exacte /search
+est distincte de GET /api/trajets/{id}. Les endpoints de detail et publication
+conservent leurs URLs. TrajetSearchControllerTest utilise MockMvc avec service
+simule pour verifier liaison des parametres, valeurs par defaut, validation et JSON.
+
+La [collection recherche](postman/trajets-recherche.postman_collection.json)
+contient les preparations, cas valides, erreurs 400, pagination et reservations.
+Elle existe aussi dans la collection simple, sans variables ni scripts. Le
+[guide Postman recherche](docs/tests-recherche-trajets.md) explique les trois
+trajets de reference B/C/A, les ids et dates a adapter, les prix attendus,
+les places disponibles et les fixtures optionnelles pour les statuts annules.
+
 ## Reserver des places (COV-15)
 
 Le modele Reservation et son repository sont prepares. Une reservation reference
