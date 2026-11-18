@@ -106,14 +106,14 @@ class TrajetPublicationIntegrationTest {
         });
     }
 
-    @Test void readsFullDetailInOneQueryOutsideTheCreationTransaction() {
+    @Test void readsFullDetailAndRemainingSeatsInTwoQueries() {
         TrajetResponse created = trajetService.create(conducteurId, conducteurId, request());
         var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         statistics.clear();
 
         TrajetDetailResponse detail = trajetService.getById(created.id());
 
-        assertThat(statistics.getPrepareStatementCount()).isEqualTo(1);
+        assertThat(statistics.getPrepareStatementCount()).isEqualTo(2);
         assertThat(detail.id()).isEqualTo(created.id());
         assertThat(detail.conducteur().id()).isEqualTo(conducteurId);
         assertThat(detail.conducteur().firstName()).isEqualTo("Publication");
@@ -126,6 +126,7 @@ class TrajetPublicationIntegrationTest {
         assertThat(detail.departureTime()).isCloseTo(created.departureTime(),
                 within(1, java.time.temporal.ChronoUnit.MILLIS));
         assertThat(detail.offeredSeats()).isEqualTo(3);
+        assertThat(detail.remainingSeats()).isEqualTo(3);
         assertThat(detail.status()).isEqualTo(StatutTrajet.PUBLIE);
         assertThat(detail.pointsArret()).extracting(PointArretResponse::city)
                 .containsExactly("Rabat", "Casablanca", "Marrakech");

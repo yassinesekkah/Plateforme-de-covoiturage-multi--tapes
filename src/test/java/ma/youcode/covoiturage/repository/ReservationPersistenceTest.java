@@ -7,6 +7,7 @@ import ma.youcode.covoiturage.mapper.ReservationMapper;
 import ma.youcode.covoiturage.dto.reservation.ReservationCreateRequest;
 import ma.youcode.covoiturage.dto.reservation.ReservationResponse;
 import ma.youcode.covoiturage.service.ReservationService;
+import ma.youcode.covoiturage.service.TrajetService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +24,7 @@ class ReservationPersistenceTest {
     @Autowired private ReservationRepository reservationRepository;
     @Autowired private ReservationMapper reservationMapper;
     @Autowired private ReservationService reservationService;
+    @Autowired private TrajetService trajetService;
 
     @Test void savesReservationWithPassengerTripAndTwoDistinctStops() {
         String suffix = UUID.randomUUID().toString();
@@ -82,6 +84,7 @@ class ReservationPersistenceTest {
         assertThat(saved.getDateReservation()).isNotNull();
         assertThat(saved.getStatut()).isEqualTo(StatutReservation.CONFIRMEE);
         assertThat(reservationService.getRemainingSeats(trajet.getId())).isEqualTo(2);
+        assertThat(trajetService.getById(trajet.getId()).remainingSeats()).isEqualTo(2);
 
         ReservationResponse response = reservationMapper.toResponse(saved);
         assertThat(response.id()).isEqualTo(id);
@@ -100,6 +103,7 @@ class ReservationPersistenceTest {
         assertThat(reservationRepository.findById(id).orElseThrow().getStatut())
                 .isEqualTo(StatutReservation.ANNULEE);
         assertThat(reservationService.getRemainingSeats(trajet.getId())).isEqualTo(4);
+        assertThat(trajetService.getById(trajet.getId()).remainingSeats()).isEqualTo(4);
 
         // Une reservation annulee n'empeche pas une nouvelle reservation confirmee.
         ReservationResponse created = reservationService.create(passager.getId(), passager.getId(),
@@ -109,6 +113,11 @@ class ReservationPersistenceTest {
         assertThat(created.montantTotal()).isEqualByComparingTo("480.00");
         assertThat(created.statut()).isEqualTo(StatutReservation.CONFIRMEE);
         assertThat(reservationService.getRemainingSeats(trajet.getId())).isZero();
+        var detail = trajetService.getById(trajet.getId());
+        assertThat(detail.remainingSeats()).isZero();
+        assertThat(detail.offeredSeats()).isEqualTo(4);
+        assertThat(detail.status()).isEqualTo(StatutTrajet.COMPLET);
+        assertThat(detail.pointsArret()).extracting(p -> p.city()).containsExactly("Rabat", "Marrakech");
         assertThat(entityManager.find(Trajet.class, trajet.getId()).getStatus())
                 .isEqualTo(StatutTrajet.COMPLET);
     }

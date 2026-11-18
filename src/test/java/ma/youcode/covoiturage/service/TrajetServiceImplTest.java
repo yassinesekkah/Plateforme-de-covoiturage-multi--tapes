@@ -26,6 +26,7 @@ class TrajetServiceImplTest {
     @Mock private ConducteurRepository conducteurRepository;
     @Mock private VehiculeRepository vehiculeRepository;
     @Mock private TrajetRepository trajetRepository;
+    @Mock private ReservationRepository reservationRepository;
     @Mock private TrajetMapper trajetMapper;
     @Spy private PointArretMapper pointMapper = Mappers.getMapper(PointArretMapper.class);
     @InjectMocks private TrajetServiceImpl service;
@@ -49,10 +50,11 @@ class TrajetServiceImplTest {
     @Test void returnsTripDetail() {
         Trajet trajet = new Trajet();
         trajet.setId(10L);
+        trajet.setOfferedSeats(3);
         TrajetDetailResponse response = new TrajetDetailResponse(10L, null, null,
-                "Rabat", "Marrakech", departure, 3, StatutTrajet.PUBLIE, List.of());
+                "Rabat", "Marrakech", departure, 3, 3, StatutTrajet.PUBLIE, List.of());
         when(trajetRepository.findDetailById(10L)).thenReturn(Optional.of(trajet));
-        when(trajetMapper.toDetailResponse(trajet)).thenReturn(response);
+        when(trajetMapper.toDetailResponse(trajet, 3)).thenReturn(response);
 
         assertThat(service.getById(10L)).isSameAs(response);
         verify(trajetRepository, never()).save(any());
@@ -64,7 +66,20 @@ class TrajetServiceImplTest {
         assertThatThrownBy(() -> service.getById(99L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Trajet introuvable avec l'identifiant 99");
-        verifyNoInteractions(trajetMapper);
+        verifyNoInteractions(trajetMapper, reservationRepository);
+    }
+
+    @ParameterizedTest @ValueSource(longs = {0, 1, 3})
+    void passesCalculatedRemainingSeatsToDetailMapper(long confirmedSeats) {
+        Trajet trajet = new Trajet(); trajet.setId(10L); trajet.setOfferedSeats(3);
+        when(trajetRepository.findDetailById(10L)).thenReturn(Optional.of(trajet));
+        when(reservationRepository.sumPlacesByTrajetIdAndStatut(10L,
+                ma.youcode.covoiturage.enums.StatutReservation.CONFIRMEE)).thenReturn(confirmedSeats);
+
+        service.getById(10L);
+
+        verify(trajetMapper).toDetailResponse(trajet, 3 - (int) confirmedSeats);
+        verify(trajetRepository, never()).save(any());
     }
 
     private void existingOwnerAndVehicle() {
