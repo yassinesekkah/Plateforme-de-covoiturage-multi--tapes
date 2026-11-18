@@ -1,0 +1,107 @@
+{
+  "info": {
+    "name": "Covoiturage - Historique passager",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Reservations - Historique passager COV-16",
+      "description": "Lecture de toutes les reservations du passager, CONFIRMEE et ANNULEE. Sans variables ni scripts. Adapter ids dans URL et header. Aucun body.",
+      "item": [
+        {
+          "name": "Mes reservations et historique - 200",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/passagers/1/reservations",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Passager 1 existe. Liste de ses reservations uniquement, nouvelles en premier (dateReservation puis id decroissants). Les ANNULEE restent presentes. Chaque ligne contient trajet, montee et descente avec villes/heures, places, montant, date et statut."
+          }
+        },
+        {
+          "name": "Passager sans reservations - 200",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/passagers/2/reservations",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "2"
+              }
+            ],
+            "description": "Choisir un passager existant sans reservation ; adapter id 2 dans URL et header. Attendu [] ; si ce profil a des reservations, elles seront normalement retournees."
+          }
+        },
+        {
+          "name": "Historique autre passager interdit - 403",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/passagers/1/reservations",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "2"
+              }
+            ],
+            "description": "Passager 1 existe ; acteur 2 different. Aucun historique ne doit etre retourne."
+          }
+        },
+        {
+          "name": "Passager absent - 404",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/passagers/999999/reservations",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "999999"
+              }
+            ],
+            "description": "Utiliser un id inexistant dans URL et header. Attendu ProblemDetail 404."
+          }
+        },
+        {
+          "name": "Header absent - 400",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/passagers/1/reservations",
+            "header": [],
+            "description": "X-Passager-Id obligatoire."
+          }
+        },
+        {
+          "name": "Header non numerique - 400",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/passagers/1/reservations",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "abc"
+              }
+            ],
+            "description": "Le header doit etre numerique."
+          }
+        },
+        {
+          "name": "Passager non numerique - 400",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/passagers/abc/reservations",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "1"
+              }
+            ],
+            "description": "Le parametre du chemin doit etre numerique."
+          }
+        }
+      ]
+    }
+  ]
+}
