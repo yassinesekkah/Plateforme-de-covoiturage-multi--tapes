@@ -807,6 +807,21 @@ Controller de terminaison. Les 31 requetes HTTP ont ete executees sur l'API
 reelle et PostgreSQL : statuts, historique, absence de modification lors des
 refus et conservation des autres donnees verifies. Les fixtures ont ete nettoyees.
 
+## Validation des 11 scenarios du brief (COV-20)
+
+La [collection des scenarios](postman/scenarios-brief.postman_collection.json)
+reprend les onze cas du brief dans leur ordre, avec preparations et GET de controle.
+Le meme dossier existe dans la collection simple complete, sans variables ni scripts.
+Le trajet principal propose trois places dans un vehicule de capacite quatre.
+
+Le [guide et les resultats](docs/scenarios-validation-brief.md) expliquent les ids
+et dates a adapter, les montants 50.00/160.00, les places et les transitions.
+Verification sur l'API reelle et PostgreSQL : 11 scenarios reussis, 35 requetes
+conformes, avec comparaison SQL des statuts, historiques et refus sans modification.
+Les fixtures ont ete nettoyees ; les lignes preexistantes sont inchangees.
+Les limites exactes de temps, rollback et concurrence sont verifies separement
+par les tests unitaires et d'integration des fonctionnalites concernees.
+
 ## Verifier les erreurs HTTP
 
 Pour activer les endpoints techniques :
