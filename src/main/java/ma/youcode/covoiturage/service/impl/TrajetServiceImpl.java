@@ -12,10 +12,12 @@ import ma.youcode.covoiturage.entity.Conducteur;
 import ma.youcode.covoiturage.entity.PointArret;
 import ma.youcode.covoiturage.entity.Trajet;
 import ma.youcode.covoiturage.entity.Vehicule;
+import ma.youcode.covoiturage.entity.Reservation;
 import ma.youcode.covoiturage.enums.StatutTrajet;
 import ma.youcode.covoiturage.enums.StatutReservation;
 import ma.youcode.covoiturage.repository.ReservationRepository;
 import ma.youcode.covoiturage.exception.BadRequestException;
+import ma.youcode.covoiturage.exception.BusinessException;
 import ma.youcode.covoiturage.exception.ForbiddenException;
 import ma.youcode.covoiturage.exception.ResourceNotFoundException;
 import ma.youcode.covoiturage.mapper.PointArretMapper;
@@ -158,6 +160,36 @@ public class TrajetServiceImpl implements TrajetService {
 
         return trajetRepository.search(departureCity, arrivalCity,
                 startDate, endDate, request.seats(), maxPrice, pageable);
+    }
+
+    @Override
+    @Transactional
+    public void cancel(Long conducteurId, Long trajetId, Long actorId) {
+        Conducteur conducteur = conducteurRepository.findById(conducteurId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Conducteur introuvable avec l'identifiant " + conducteurId));
+        if (!conducteur.getId().equals(actorId)) {
+            throw new ForbiddenException("Vous ne pouvez annuler que vos propres trajets");
+        }
+
+        Trajet trajet = trajetRepository.findByIdForReservation(trajetId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Trajet introuvable avec l'identifiant " + trajetId));
+        if (!trajet.getConducteur().getId().equals(conducteurId)) {
+            throw new ForbiddenException("Ce trajet appartient a un autre conducteur");
+        }
+        if (trajet.getStatus() != StatutTrajet.PUBLIE && trajet.getStatus() != StatutTrajet.COMPLET) {
+            throw new BusinessException("Seul un trajet PUBLIE ou COMPLET peut etre annule");
+        }
+
+        List<Reservation> reservations = reservationRepository.findByTrajetIdAndStatut(
+                trajetId, StatutReservation.CONFIRMEE);
+        for (Reservation reservation : reservations) {
+            reservation.setStatut(StatutReservation.ANNULEE);
+        }
+        trajet.setStatus(StatutTrajet.ANNULE);
+        log.info("Annulation du trajet {} par le conducteur {} avec {} reservation(s) annulee(s)",
+                trajetId, conducteurId, reservations.size());
     }
 
     private void validateSeats(Integer offeredSeats, Integer capacity) {

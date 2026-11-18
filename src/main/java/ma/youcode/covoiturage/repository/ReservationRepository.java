@@ -11,6 +11,8 @@ import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+    List<Reservation> findByTrajetIdAndStatut(Long trajetId, StatutReservation statut);
+
     // Lire uniquement l'id du trajet pour le verrouiller avant de charger la reservation.
     @Query("select r.trajet.id from Reservation r where r.id = :reservationId")
     Optional<Long> findTrajetIdByReservationId(@Param("reservationId") Long reservationId);
