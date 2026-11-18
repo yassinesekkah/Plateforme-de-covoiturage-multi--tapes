@@ -431,7 +431,7 @@ Un rollback ne remet pas a zero les sequences : des trous dans les ids sont norm
 Pour l'instant, COV-12 expose uniquement la publication. La consultation detaillee,
 la recherche, les reservations et les changements de statut restent dans les stories suivantes.
 
-## Consulter le detail d'un trajet (COV-13, partie 1)
+## Consulter le detail d'un trajet (COV-13)
 
 `GET /api/trajets/{id}` retourne 200 pour un trajet existant et 404 sinon.
 Un identifiant non numerique retourne 400. Aucun header d'acteur n'est demande.
@@ -443,15 +443,30 @@ pas exposes dans ce detail.
 TrajetDetailResponse est distinct du DTO de publication. Le repository utilise
 JOIN FETCH pour charger conducteur, vehicule et points dans une seule requete.
 Le service est transactionnel en lecture seule. Le test PostgreSQL verifie
-le mapping, l'ordre des points et le nombre de requetes SQL (une).
+le mapping, l'ordre des points et le nombre de requetes SQL (deux au total :
+une pour le detail et ses relations, une pour la somme des places confirmees).
 
-Cette partie ne calcule pas encore les places restantes. offeredSeats represente
-les places proposees a la publication. Le calcul avec les reservations CONFIRMEE
-et ANNULEE reste a implementer avant de terminer COV-13.
+offeredSeats represente les places proposees a la publication. remainingSeats
+est calcule a chaque lecture : offeredSeats moins la somme des nombrePlaces
+des reservations CONFIRMEE. Les reservations ANNULEE sont exclues. Sans reservation,
+remainingSeats = offeredSeats ; un trajet COMPLET a zero place restante.
+Ce champ n'est pas stocke dans la table trajets. Le service utilise la requete
+de somme du ReservationRepository et transmet le resultat au mapper.
+Les tests PostgreSQL couvrent les reservations confirmees, annulees et le
+remplissage complet sans changer le parcours ou les places proposees.
 
 Importer `postman/trajets-detail.postman_collection.json` ou utiliser le dossier
 Trajets - Detail COV-13 de la collection simple. Remplacer 1 par un id obtenu
 lors d'une publication ; 999999 est suppose absent.
+
+Verification HTTP du 18 novembre 2026 sur l'API locale et PostgreSQL : les sept
+requetes de cette collection et deux controles supplementaires ont reussi.
+remainingSeats concorde avec SQL : 4 sans reservation, 1 avec trois places
+CONFIRMEE, 3 avec une place CONFIRMEE et deux ANNULEE, 0 pour COMPLET, puis 4
+si toutes les reservations du trajet de test sont ANNULEE. Les ids, le parcours,
+les heures, les prix et offeredSeats sont conserves ; les GET ne modifient pas
+les donnees. Les statuts ANNULEE ont ete prepares uniquement sur les fixtures
+via SQL, sans tester un endpoint d'annulation. Les fixtures ont ete nettoyees.
 
 ## Reserver des places (COV-15)
 
@@ -530,7 +545,7 @@ SQL en lecture seule. La collection importable est
 `postman/reservations.postman_collection.json` ; son dossier est aussi dans la
 collection simple. Sans variables ni scripts, ids et dates sont a adapter manuellement.
 Les endpoints d'historique et d'annulation restent dans les stories suivantes.
-COV-13 reste incomplet pour l'affichage des places restantes dans le detail.
+Le detail trajet de COV-13 expose remainingSeats calcule a partir de ces reservations.
 
 ## Verifier les erreurs HTTP
 
