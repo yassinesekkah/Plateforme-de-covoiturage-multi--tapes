@@ -5,10 +5,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.Optional;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 
 public interface TrajetRepository extends JpaRepository<Trajet, Long> {
 
     boolean existsByVehiculeId(Long vehiculeId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select t from Trajet t where t.id = :id")
+    Optional<Trajet> findByIdForReservation(@Param("id") Long id);
 
     @Query("""
             select t from Trajet t
