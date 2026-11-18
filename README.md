@@ -680,6 +680,73 @@ temporaires uniquement : leurs futurs endpoints n'ont pas ete testes.
 Les fixtures ont ete nettoyees apres verification. Rapport local non versionne :
 target/cov16-http-results.json.
 
+## Annuler une reservation (COV-17)
+
+ReservationService.cancel utilise les lectures repository dans une meme
+transaction, en respectant cet ordre :
+
+1. ReservationRepository.findTrajetIdByReservationId lit uniquement l'id du trajet,
+   sans charger l'entite Reservation et son statut dans le contexte JPA.
+2. TrajetRepository.findByIdForReservation prend le verrou PESSIMISTIC_WRITE
+   deja utilise par la creation de reservation.
+3. ReservationRepository.findByIdForCancellation charge et verrouille la
+   reservation du trajet attendu, apres acquisition du verrou du trajet.
+
+Cela evite de travailler avec un statut lu avant l'attente du verrou et garde
+l'ordre trajet puis reservation pour les operations concurrentes. Les methodes
+retournent Optional.empty si la reservation est absente ou ne correspond pas au
+trajet attendu. Le verrou dure jusqu'au commit ou rollback de la transaction.
+
+ReservationCancellationRepositoryTest utilise des fixtures PostgreSQL commitees
+et deux connexions distinctes. Il observe pg_blocking_pids pour verifier l'attente
+reelle. Il couvre lecture scalaire sans chargement d'entite, reservation absente,
+mauvais trajet, relecture apres commit/rollback et creation concurrente utilisant
+  le meme verrou. Il utilise maintenant le vrai service d'annulation pour verifier
+  la persistance, le rollback, les doubles annulations et les creations concurrentes.
+  Seules ses fixtures sont nettoyees apres chaque scenario.
+
+Le service verifie le passager (404), l'acteur et le proprietaire de la reservation
+(403), son existence (404), son statut CONFIRMEE (sinon 409), et un trajet PUBLIE
+ou COMPLET (sinon 409). L'annulation est autorisee jusqu'a exactement 24 heures
+avant le depart du trajet entier, pas avant l'heure de montee du passager.
+Un delai plus court retourne un conflit metier (409).
+
+Le statut devient ANNULEE ; nombrePlaces, montantTotal et dateReservation restent
+conserves pour l'historique. Un flush envoie ce changement a PostgreSQL avant la
+somme des places CONFIRMEE, sans commit intermediaire. Si le trajet etait COMPLET
+et que des places se liberent, il redevient PUBLIE. Les deux changements sont
+valides ou annules ensemble a la fin de la transaction. Une deuxieme annulation
+retourne 409 sans liberer de places une seconde fois ; ANNULE et TERMINE ne sont
+jamais rouverts.
+
+TimeConfiguration fournit Clock.systemDefaultZone pour l'heure locale de l'application.
+ReservationCancellationServiceTest utilise Clock.fixed pour tester exactement 24h,
+la limite depassee d'une nanoseconde, les refus de propriete et les statuts sans
+dependre de l'heure d'execution.
+
+PATCH /api/passagers/{passagerId}/reservations/{reservationId}/annuler avec le
+header X-Passager-Id appelle ce service et retourne 204 sans contenu. Aucun body
+n'est demande. Header absent, header conducteur seul, ids/header non numeriques :
+400. Le handler commun conserve les erreurs metier 403/404/409. La creation POST
+et la consultation GET des reservations conservent leurs chemins et reponses.
+ReservationCancellationControllerTest verifie ces contrats avec MockMvc et un
+service simule ; le metier, les limites de temps, la persistance et la concurrence
+sont verifies par les tests du vrai service et de PostgreSQL.
+
+La [collection annulation](postman/reservations-annulation.postman_collection.json)
+contient preparation, refus, annulation valide, lectures de controle et fixtures
+de delai/statut. Elle existe aussi dans la collection simple, sans variables ni
+scripts. Le [guide Postman annulation](docs/tests-annulation-reservation.md)
+explique les ids et dates a adapter, les limites de l'essai manuel a exactement
+24h, le retour de COMPLET a PUBLIE et les verifications SQL en lecture seule.
+Verification HTTP du 18 novembre 2026 : les 28 requetes de la collection ont
+reussi sur l'API reelle et PostgreSQL. Le passage COMPLET -> PUBLIE, les places
+0 -> 2, la conservation de l'historique et des champs de reservation, la deuxieme
+annulation refusee et les delais/statuts interdits ont ete verifies. Les GET et
+refus n'ont modifie aucune ligne. Les dates proches et statuts finaux ont ete
+prepares via SQL uniquement sur les fixtures, nettoyees apres execution.
+Les details sont consignes dans le guide Postman annulation.
+
 ## Verifier les erreurs HTTP
 
 Pour activer les endpoints techniques :

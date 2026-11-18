@@ -13,4 +13,6 @@ public interface ReservationService {
     List<ReservationDetailResponse> getByPassager(Long passagerId, Long actorId);
 
     List<ReservationDetailResponse> getByTrajetForConducteur(Long conducteurId, Long trajetId, Long actorId);
+
+    void cancel(Long passagerId, Long reservationId, Long actorId);
 }
