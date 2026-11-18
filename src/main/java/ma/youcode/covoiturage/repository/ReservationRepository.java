@@ -6,8 +6,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ma.youcode.covoiturage.enums.StatutReservation;
 import java.util.List;
+import java.util.Optional;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+    // Lire uniquement l'id du trajet pour le verrouiller avant de charger la reservation.
+    @Query("select r.trajet.id from Reservation r where r.id = :reservationId")
+    Optional<Long> findTrajetIdByReservationId(@Param("reservationId") Long reservationId);
+
+    // A appeler apres le verrou du trajet, dans la meme transaction.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select r from Reservation r where r.id = :reservationId and r.trajet.id = :trajetId")
+    Optional<Reservation> findByIdForCancellation(@Param("reservationId") Long reservationId,
+                                                 @Param("trajetId") Long trajetId);
+
     @Query("""
             select r from Reservation r
             join fetch r.passager
