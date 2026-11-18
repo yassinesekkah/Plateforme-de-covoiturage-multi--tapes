@@ -453,6 +453,85 @@ Importer `postman/trajets-detail.postman_collection.json` ou utiliser le dossier
 Trajets - Detail COV-13 de la collection simple. Remplacer 1 par un id obtenu
 lors d'une publication ; 999999 est suppose absent.
 
+## Reserver des places (COV-15)
+
+Le modele Reservation et son repository sont prepares. Une reservation reference
+un passager, un trajet, un point de montee et un point de descente via quatre
+relations ManyToOne, sans cascade vers ces donnees existantes. Elle contient
+nombrePlaces, montantTotal (BigDecimal a deux decimales), dateReservation et
+statut (CONFIRMEE ou ANNULEE, stocke en texte).
+
+ReservationPersistenceTest verifie ces relations et la sauvegarde des champs
+dans PostgreSQL. Ses donnees temporaires sont annulees a la fin du test.
+Il ne valide pas les regles metier ni une annulation via l'API.
+
+ReservationCreateRequest accepte trajetId, monteeId, descenteId (obligatoires et
+positifs) et nombrePlaces (obligatoire, minimum 1). Le passager sera identifie par
+le chemin de l'endpoint et le header d'acteur, comme pour les autres fonctionnalites.
+Le client ne choisit ni montant, ni date, ni statut. ReservationMapper copie le
+nombre de places ; les relations et les champs calcules seront fixes par le service.
+ReservationResponse expose les identifiants des relations et les champs de la
+reservation, sans serialiser les entites JPA.
+
+Les tests verifient la validation DTO et les conversions avec le vrai mapper
+dans le test PostgreSQL. L'existence des ids, l'appartenance des points au trajet,
+leur ordre et les places disponibles sont verifies dans le service.
+
+ReservationService.create verifie passager, acteur, trajet PUBLIE, points du meme
+trajet dans le bon ordre et nombre de places positif. Une seule reservation
+CONFIRMEE par passager et trajet est autorisee. Une ancienne ANNULEE ne bloque pas.
+Les places restantes sont calculees en soustrayant uniquement la somme des places
+CONFIRMEE, sur tout le trajet, independamment du segment choisi. Les places
+insuffisantes ou un statut incompatible retournent un conflit metier (409).
+Les points d'un autre trajet ou dans le mauvais ordre sont refuses (400) ; une
+ressource absente donne 404 et un acteur different donne 403.
+
+Le montant vaut (prix descente - prix montee) fois nombrePlaces, avec deux decimales.
+Le service fixe dateReservation et CONFIRMEE, puis sauvegarde la reservation.
+Si aucune place ne reste, le trajet devient COMPLET dans la meme transaction.
+Le trajet charge est gere par JPA : son changement de statut est sauvegarde
+automatiquement au flush/commit (dirty checking).
+
+Le verrou PESSIMISTIC_WRITE sur le trajet est pris avant lecture des places et
+conserve jusqu'a la fin de la transaction. Les futurs traitements qui changent les
+places ou le statut devront respecter le meme verrouillage.
+Les tests service couvrent succes et refus ; PostgreSQL verifie la somme CONFIRMEE,
+l'exclusion des ANNULEE et la persistance du statut COMPLET apres reservation.
+
+ReservationConcurrencyTest lance deux threads avec deux transactions et connexions
+PostgreSQL distinctes pour la derniere place. Il observe pg_blocking_pids pour
+verifier que la seconde transaction attend reellement le verrou de la premiere.
+Si la premiere valide, la seconde est refusee avec BusinessException (409 via le
+handler HTTP). Si la premiere fait rollback, la seconde peut reserver la place.
+Les deux scenarios verifient une seule reservation CONFIRMEE, zero place restante
+et un trajet COMPLET. Les donnees commitees necessaires a ce test sont creees avec
+des UUID, puis seules ces donnees sont nettoyees apres chaque scenario.
+Ce sont des tests du service avec PostgreSQL, pas encore des tests HTTP.
+
+Pour les rejouer seuls (PostgreSQL doit etre demarre) :
+
+```powershell
+.\mvnw.cmd "-Dtest=ReservationConcurrencyTest" test
+```
+
+POST /api/passagers/{passagerId}/reservations cree une reservation et retourne
+201 avec ReservationResponse. Le header X-Passager-Id est obligatoire et doit
+correspondre au passager du chemin. Le body demande trajetId, monteeId,
+descenteId et nombrePlaces. DTO invalide, JSON malforme, header absent ou id non
+numerique : 400. Ce header est une simulation de propriete, pas une authentification.
+
+ReservationControllerTest verifie le JSON de succes, les validations avant appel
+du service et les erreurs ProblemDetail. Ces tests utilisent MockMvc avec service
+simule ; la persistance et la concurrence sont verifiees separement sur PostgreSQL.
+
+Le [guide Postman Reservation](docs/tests-reservations.md) explique les fixtures,
+le scenario 50 DH / 160 DH, les refus, le remplissage du trajet et les verifications
+SQL en lecture seule. La collection importable est
+`postman/reservations.postman_collection.json` ; son dossier est aussi dans la
+collection simple. Sans variables ni scripts, ids et dates sont a adapter manuellement.
+Les endpoints d'historique et d'annulation restent dans les stories suivantes.
+COV-13 reste incomplet pour l'affichage des places restantes dans le detail.
+
 ## Verifier les erreurs HTTP
 
 Pour activer les endpoints techniques :
