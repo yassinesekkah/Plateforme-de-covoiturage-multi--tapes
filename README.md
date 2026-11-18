@@ -784,6 +784,29 @@ l'isolation des autres trajets ont ete compares en base. Recherche et creation
 excluent/refusent le trajet annule ; les refus et GET ne modifient pas les donnees.
 Les fixtures ont ete nettoyees. Le guide des tests consigne les details.
 
+## Terminer un trajet (COV-19)
+
+PATCH /api/conducteurs/{conducteurId}/trajets/{trajetId}/terminer avec
+X-Conducteur-Id, sans body, retourne 204 sans contenu. Seul le conducteur
+proprietaire peut terminer son trajet (403 sinon). Conducteur ou trajet absent :
+404. Le trajet doit etre PUBLIE ou COMPLET et son heure de depart strictement
+depassee ; avant ou exactement au depart, ou si ANNULE/TERMINE : 409.
+
+TrajetService.finish reutilise le verrou PESSIMISTIC_WRITE du trajet et une
+transaction. Seul son statut passe a TERMINE. Les reservations, montants,
+dates et places restent inchanges. Clock, deja configure dans l'application,
+permet de verifier les limites de temps avec une horloge fixe dans les tests.
+
+La [collection terminaison](postman/trajets-terminer.postman_collection.json)
+contient 31 requetes simples, aussi presentes dans la collection complete.
+Le [guide des tests](docs/tests-terminer-trajet.md) explique la preparation
+des dates et les controles SQL.
+
+Verification : 330 tests Java reussis, dont 13 tests Service et 11 tests
+Controller de terminaison. Les 31 requetes HTTP ont ete executees sur l'API
+reelle et PostgreSQL : statuts, historique, absence de modification lors des
+refus et conservation des autres donnees verifies. Les fixtures ont ete nettoyees.
+
 ## Verifier les erreurs HTTP
 
 Pour activer les endpoints techniques :
