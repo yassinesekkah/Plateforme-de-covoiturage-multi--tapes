@@ -431,6 +431,28 @@ Un rollback ne remet pas a zero les sequences : des trous dans les ids sont norm
 Pour l'instant, COV-12 expose uniquement la publication. La consultation detaillee,
 la recherche, les reservations et les changements de statut restent dans les stories suivantes.
 
+## Consulter le detail d'un trajet (COV-13, partie 1)
+
+`GET /api/trajets/{id}` retourne 200 pour un trajet existant et 404 sinon.
+Un identifiant non numerique retourne 400. Aucun header d'acteur n'est demande.
+La reponse contient les villes, le depart, les places proposees, le statut,
+le conducteur (id, nom, prenom, telephone), le vehicule et les points d'arret
+ordonnes avec leurs heures et prix. Le permis et l'email du conducteur ne sont
+pas exposes dans ce detail.
+
+TrajetDetailResponse est distinct du DTO de publication. Le repository utilise
+JOIN FETCH pour charger conducteur, vehicule et points dans une seule requete.
+Le service est transactionnel en lecture seule. Le test PostgreSQL verifie
+le mapping, l'ordre des points et le nombre de requetes SQL (une).
+
+Cette partie ne calcule pas encore les places restantes. offeredSeats represente
+les places proposees a la publication. Le calcul avec les reservations CONFIRMEE
+et ANNULEE reste a implementer avant de terminer COV-13.
+
+Importer `postman/trajets-detail.postman_collection.json` ou utiliser le dossier
+Trajets - Detail COV-13 de la collection simple. Remplacer 1 par un id obtenu
+lors d'une publication ; 999999 est suppose absent.
+
 ## Verifier les erreurs HTTP
 
 Pour activer les endpoints techniques :

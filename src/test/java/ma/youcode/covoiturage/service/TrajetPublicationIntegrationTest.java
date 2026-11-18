@@ -1,6 +1,8 @@
 package ma.youcode.covoiturage.service;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import org.hibernate.SessionFactory;
 import ma.youcode.covoiturage.dto.trajet.*;
 import ma.youcode.covoiturage.entity.*;
 import ma.youcode.covoiturage.enums.StatutTrajet;
@@ -18,8 +20,9 @@ import java.util.List;
 import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.jpa.properties.hibernate.generate_statistics=true")
 class TrajetPublicationIntegrationTest {
+    @Autowired private EntityManagerFactory entityManagerFactory;
     @Autowired private TrajetService trajetService;
     @Autowired private VehiculeService vehiculeService;
     @Autowired private ConducteurRepository conducteurRepository;
@@ -101,6 +104,35 @@ class TrajetPublicationIntegrationTest {
                     .setParameter("id", conducteurId).getSingleResult();
             assertThat(count).isZero();
         });
+    }
+
+    @Test void readsFullDetailInOneQueryOutsideTheCreationTransaction() {
+        TrajetResponse created = trajetService.create(conducteurId, conducteurId, request());
+        var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.clear();
+
+        TrajetDetailResponse detail = trajetService.getById(created.id());
+
+        assertThat(statistics.getPrepareStatementCount()).isEqualTo(1);
+        assertThat(detail.id()).isEqualTo(created.id());
+        assertThat(detail.conducteur().id()).isEqualTo(conducteurId);
+        assertThat(detail.conducteur().firstName()).isEqualTo("Publication");
+        assertThat(detail.conducteur().phone()).isEqualTo("0600000000");
+        assertThat(detail.vehicule().id()).isEqualTo(vehiculeId);
+        assertThat(detail.vehicule().conducteurId()).isEqualTo(conducteurId);
+        assertThat(detail.vehicule().model()).isEqualTo("Logan");
+        assertThat(detail.departureCity()).isEqualTo("Rabat");
+        assertThat(detail.arrivalCity()).isEqualTo("Marrakech");
+        assertThat(detail.departureTime()).isCloseTo(created.departureTime(),
+                within(1, java.time.temporal.ChronoUnit.MILLIS));
+        assertThat(detail.offeredSeats()).isEqualTo(3);
+        assertThat(detail.status()).isEqualTo(StatutTrajet.PUBLIE);
+        assertThat(detail.pointsArret()).extracting(PointArretResponse::city)
+                .containsExactly("Rabat", "Casablanca", "Marrakech");
+        assertThat(detail.pointsArret()).extracting(PointArretResponse::stopOrder)
+                .containsExactly(0, 1, 2);
+        assertThat(detail.pointsArret()).extracting(PointArretResponse::priceFromDeparture)
+                .containsExactly(new BigDecimal("0.00"), new BigDecimal("40.00"), new BigDecimal("120.00"));
     }
 
     @Test void refusesVehicleDeletionAndKeepsTripAndVehicle() {

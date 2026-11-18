@@ -46,6 +46,27 @@ class TrajetServiceImplTest {
                 new PointArretCreateRequest("Marrakech", departure.plusHours(3), new BigDecimal("120")));
     }
 
+    @Test void returnsTripDetail() {
+        Trajet trajet = new Trajet();
+        trajet.setId(10L);
+        TrajetDetailResponse response = new TrajetDetailResponse(10L, null, null,
+                "Rabat", "Marrakech", departure, 3, StatutTrajet.PUBLIE, List.of());
+        when(trajetRepository.findDetailById(10L)).thenReturn(Optional.of(trajet));
+        when(trajetMapper.toDetailResponse(trajet)).thenReturn(response);
+
+        assertThat(service.getById(10L)).isSameAs(response);
+        verify(trajetRepository, never()).save(any());
+    }
+
+    @Test void rejectsMissingTripDetail() {
+        when(trajetRepository.findDetailById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getById(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Trajet introuvable avec l'identifiant 99");
+        verifyNoInteractions(trajetMapper);
+    }
+
     private void existingOwnerAndVehicle() {
         when(conducteurRepository.findById(1L)).thenReturn(Optional.of(owner));
         when(vehiculeRepository.findById(2L)).thenReturn(Optional.of(vehicle));
