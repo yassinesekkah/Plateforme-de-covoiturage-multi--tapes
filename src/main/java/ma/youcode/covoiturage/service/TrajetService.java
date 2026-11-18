@@ -16,4 +16,6 @@ public interface TrajetService {
     Slice<TrajetSearchResult> search(TrajetSearchRequest request);
 
     void cancel(Long conducteurId, Long trajetId, Long actorId);
+
+    void finish(Long conducteurId, Long trajetId, Long actorId);
 }
