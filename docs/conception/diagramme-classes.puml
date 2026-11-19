@@ -3,46 +3,46 @@ skinparam classAttributeIconSize 0
 hide methods
 class Conducteur {
   id : Long
-  nom : String
-  prenom : String
+  lastName : String
+  firstName : String
   email : String {unique}
-  telephone : String
-  numeroPermis : String {unique}
+  phone : String
+  licenseNumber : String {unique}
 }
 class Vehicule {
   id : Long
-  marque : String
-  modele : String
-  immatriculation : String {unique}
-  couleur : String
-  capacite : int {1..8}
+  brand : String
+  model : String
+  registrationNumber : String {unique}
+  color : String
+  capacity : Integer {1..8}
 }
 class Passager {
   id : Long
-  nom : String
-  prenom : String
+  lastName : String
+  firstName : String
   email : String {unique}
-  telephone : String
+  phone : String
 }
 class Trajet {
   id : Long
-  villeDepart : String
-  villeArrivee : String
-  dateDepart : LocalDateTime
-  placesProposees : int
-  statut : StatutTrajet
-  /placesRestantes : int {calcule}
+  departureCity : String
+  arrivalCity : String
+  departureTime : LocalDateTime
+  offeredSeats : Integer
+  status : StatutTrajet
+  /remainingSeats : Integer {calcule}
 }
 class PointArret {
   id : Long
-  ville : String
-  ordre : int
-  heurePassage : LocalDateTime
-  prixDepuisDepart : BigDecimal
+  city : String
+  stopOrder : Integer
+  passageTime : LocalDateTime
+  priceFromDeparture : BigDecimal
 }
 class Reservation {
   id : Long
-  nombrePlaces : int
+  nombrePlaces : Integer
   montantTotal : BigDecimal
   dateReservation : LocalDateTime
   statut : StatutReservation

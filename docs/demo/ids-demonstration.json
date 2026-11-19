@@ -1,0 +1,344 @@
+{
+  "ids": [
+    {
+      "id": 4,
+      "kind": "conducteur",
+      "label": "Ahmed"
+    },
+    {
+      "id": 1,
+      "kind": "conducteur",
+      "label": "Hamid"
+    },
+    {
+      "id": 2,
+      "kind": "conducteur",
+      "label": "Omar"
+    },
+    {
+      "id": 5,
+      "kind": "conducteur",
+      "label": "Rachid"
+    },
+    {
+      "id": 3,
+      "kind": "conducteur",
+      "label": "Yassine"
+    },
+    {
+      "id": 5,
+      "kind": "passager",
+      "label": "Amine"
+    },
+    {
+      "id": 3,
+      "kind": "passager",
+      "label": "Imane"
+    },
+    {
+      "id": 2,
+      "kind": "passager",
+      "label": "Karim"
+    },
+    {
+      "id": 1,
+      "kind": "passager",
+      "label": "Salma"
+    },
+    {
+      "id": 4,
+      "kind": "passager",
+      "label": "Sara"
+    },
+    {
+      "id": 7,
+      "kind": "reservation",
+      "label": "AnnulationKarim"
+    },
+    {
+      "id": 6,
+      "kind": "reservation",
+      "label": "AnnulationSalma"
+    },
+    {
+      "id": 5,
+      "kind": "reservation",
+      "label": "DelaiSalma"
+    },
+    {
+      "id": 4,
+      "kind": "reservation",
+      "label": "KarimKarim"
+    },
+    {
+      "id": 3,
+      "kind": "reservation",
+      "label": "KarimSalma"
+    },
+    {
+      "id": 1,
+      "kind": "reservation",
+      "label": "ReservationSalma"
+    },
+    {
+      "id": 2,
+      "kind": "reservation",
+      "label": "TerminaisonSalma"
+    },
+    {
+      "id": 1,
+      "kind": "trajet",
+      "label": "Reservation"
+    },
+    {
+      "id": 6,
+      "kind": "trajet",
+      "label": "ScenarioAnnulation"
+    },
+    {
+      "id": 5,
+      "kind": "trajet",
+      "label": "ScenarioDelai"
+    },
+    {
+      "id": 4,
+      "kind": "trajet",
+      "label": "ScenarioKarim"
+    },
+    {
+      "id": 3,
+      "kind": "trajet",
+      "label": "ScenarioPrincipal"
+    },
+    {
+      "id": 2,
+      "kind": "trajet",
+      "label": "Terminaison"
+    },
+    {
+      "id": 4,
+      "kind": "vehicule",
+      "label": "Ahmed"
+    },
+    {
+      "id": 1,
+      "kind": "vehicule",
+      "label": "Hamid"
+    },
+    {
+      "id": 2,
+      "kind": "vehicule",
+      "label": "Omar"
+    },
+    {
+      "id": 5,
+      "kind": "vehicule",
+      "label": "Rachid"
+    },
+    {
+      "id": 6,
+      "kind": "vehicule",
+      "label": "Suppression"
+    },
+    {
+      "id": 3,
+      "kind": "vehicule",
+      "label": "Yassine"
+    }
+  ],
+  "points": [
+    {
+      "id": 1,
+      "city": "Rabat",
+      "trajet_id": 1,
+      "stop_order": 0,
+      "passage_time": "2026-11-22T17:00:00",
+      "price_from_departure": 0
+    },
+    {
+      "id": 2,
+      "city": "Casablanca",
+      "trajet_id": 1,
+      "stop_order": 1,
+      "passage_time": "2026-11-22T18:15:00",
+      "price_from_departure": 40
+    },
+    {
+      "id": 3,
+      "city": "Settat",
+      "trajet_id": 1,
+      "stop_order": 2,
+      "passage_time": "2026-11-22T19:15:00",
+      "price_from_departure": 70
+    },
+    {
+      "id": 4,
+      "city": "Marrakech",
+      "trajet_id": 1,
+      "stop_order": 3,
+      "passage_time": "2026-11-22T21:30:00",
+      "price_from_departure": 120
+    },
+    {
+      "id": 5,
+      "city": "Rabat",
+      "trajet_id": 2,
+      "stop_order": 0,
+      "passage_time": "2026-11-19T09:09:16.287509",
+      "price_from_departure": 0
+    },
+    {
+      "id": 6,
+      "city": "Casablanca",
+      "trajet_id": 2,
+      "stop_order": 1,
+      "passage_time": "2026-11-19T10:24:16.287509",
+      "price_from_departure": 40
+    },
+    {
+      "id": 7,
+      "city": "Settat",
+      "trajet_id": 2,
+      "stop_order": 2,
+      "passage_time": "2026-11-19T11:24:16.287509",
+      "price_from_departure": 70
+    },
+    {
+      "id": 8,
+      "city": "Marrakech",
+      "trajet_id": 2,
+      "stop_order": 3,
+      "passage_time": "2026-11-19T13:39:16.287509",
+      "price_from_departure": 120
+    },
+    {
+      "id": 9,
+      "city": "Rabat",
+      "trajet_id": 3,
+      "stop_order": 0,
+      "passage_time": "2026-11-22T17:00:00",
+      "price_from_departure": 0
+    },
+    {
+      "id": 10,
+      "city": "Casablanca",
+      "trajet_id": 3,
+      "stop_order": 1,
+      "passage_time": "2026-11-22T18:15:00",
+      "price_from_departure": 40
+    },
+    {
+      "id": 11,
+      "city": "Settat",
+      "trajet_id": 3,
+      "stop_order": 2,
+      "passage_time": "2026-11-22T19:15:00",
+      "price_from_departure": 70
+    },
+    {
+      "id": 12,
+      "city": "Marrakech",
+      "trajet_id": 3,
+      "stop_order": 3,
+      "passage_time": "2026-11-22T21:30:00",
+      "price_from_departure": 120
+    },
+    {
+      "id": 13,
+      "city": "Rabat",
+      "trajet_id": 4,
+      "stop_order": 0,
+      "passage_time": "2026-11-22T17:00:00",
+      "price_from_departure": 0
+    },
+    {
+      "id": 14,
+      "city": "Casablanca",
+      "trajet_id": 4,
+      "stop_order": 1,
+      "passage_time": "2026-11-22T18:15:00",
+      "price_from_departure": 40
+    },
+    {
+      "id": 15,
+      "city": "Settat",
+      "trajet_id": 4,
+      "stop_order": 2,
+      "passage_time": "2026-11-22T19:15:00",
+      "price_from_departure": 70
+    },
+    {
+      "id": 16,
+      "city": "Marrakech",
+      "trajet_id": 4,
+      "stop_order": 3,
+      "passage_time": "2026-11-22T21:30:00",
+      "price_from_departure": 120
+    },
+    {
+      "id": 17,
+      "city": "Rabat",
+      "trajet_id": 5,
+      "stop_order": 0,
+      "passage_time": "2026-11-19T12:09:16.287509",
+      "price_from_departure": 0
+    },
+    {
+      "id": 18,
+      "city": "Casablanca",
+      "trajet_id": 5,
+      "stop_order": 1,
+      "passage_time": "2026-11-19T13:24:16.287509",
+      "price_from_departure": 40
+    },
+    {
+      "id": 19,
+      "city": "Settat",
+      "trajet_id": 5,
+      "stop_order": 2,
+      "passage_time": "2026-11-19T14:24:16.287509",
+      "price_from_departure": 70
+    },
+    {
+      "id": 20,
+      "city": "Marrakech",
+      "trajet_id": 5,
+      "stop_order": 3,
+      "passage_time": "2026-11-19T16:39:16.287509",
+      "price_from_departure": 120
+    },
+    {
+      "id": 21,
+      "city": "Rabat",
+      "trajet_id": 6,
+      "stop_order": 0,
+      "passage_time": "2026-11-22T17:00:00",
+      "price_from_departure": 0
+    },
+    {
+      "id": 22,
+      "city": "Casablanca",
+      "trajet_id": 6,
+      "stop_order": 1,
+      "passage_time": "2026-11-22T18:15:00",
+      "price_from_departure": 40
+    },
+    {
+      "id": 23,
+      "city": "Settat",
+      "trajet_id": 6,
+      "stop_order": 2,
+      "passage_time": "2026-11-22T19:15:00",
+      "price_from_departure": 70
+    },
+    {
+      "id": 24,
+      "city": "Marrakech",
+      "trajet_id": 6,
+      "stop_order": 3,
+      "passage_time": "2026-11-22T21:30:00",
+      "price_from_departure": 120
+    }
+  ],
+  "datePreparation": "2026-11-19T10:09:16.287509"
+}
