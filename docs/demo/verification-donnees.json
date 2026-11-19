@@ -1,0 +1,21 @@
+{
+  "counts": {
+    "conducteurs": 5,
+    "passagers": 5,
+    "vehicules": 6,
+    "trajets": 6,
+    "points_arret": 24,
+    "reservations": 7
+  },
+  "idsStartAtOne": true,
+  "distinctVehicleModels": 6,
+  "pricesSeatsAndRelationsValid": true,
+  "httpReadChecks": 24,
+  "demoActionsNotConsumed": true,
+  "resetAuthorized": true,
+  "fullCollectionRequestsPassed": 59,
+  "briefScenariosPassed": 11,
+  "testedOnTemporaryCopy": true,
+  "originalDatabaseUnchanged": true,
+  "temporaryDatabaseRemoved": true
+}
