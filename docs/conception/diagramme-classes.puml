@@ -1,0 +1,68 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide methods
+class Conducteur {
+  id : Long
+  lastName : String
+  firstName : String
+  email : String {unique}
+  phone : String
+  licenseNumber : String {unique}
+}
+class Vehicule {
+  id : Long
+  brand : String
+  model : String
+  registrationNumber : String {unique}
+  color : String
+  capacity : Integer {1..8}
+}
+class Passager {
+  id : Long
+  lastName : String
+  firstName : String
+  email : String {unique}
+  phone : String
+}
+class Trajet {
+  id : Long
+  departureCity : String
+  arrivalCity : String
+  departureTime : LocalDateTime
+  offeredSeats : Integer
+  status : StatutTrajet
+  /remainingSeats : Integer {calcule}
+}
+class PointArret {
+  id : Long
+  city : String
+  stopOrder : Integer
+  passageTime : LocalDateTime
+  priceFromDeparture : BigDecimal
+}
+class Reservation {
+  id : Long
+  nombrePlaces : Integer
+  montantTotal : BigDecimal
+  dateReservation : LocalDateTime
+  statut : StatutReservation
+}
+Conducteur "1" -- "0..*" Vehicule : possede
+Conducteur "1" -- "0..*" Trajet : publie
+Vehicule "1" -- "0..*" Trajet : utilise par
+Trajet "1" *-- "2..*" PointArret : contient
+Passager "1" -- "0..*" Reservation : effectue
+Trajet "1" -- "0..*" Reservation : recoit
+PointArret "1" -- "0..*" Reservation : montee
+PointArret "1" -- "0..*" Reservation : descente
+enum StatutTrajet {
+ PUBLIE
+ COMPLET
+ TERMINE
+ ANNULE
+}
+enum StatutReservation {
+ CONFIRMEE
+ ANNULEE
+}
+@enduml

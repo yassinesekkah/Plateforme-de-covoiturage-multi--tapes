@@ -1,0 +1,813 @@
+{
+  "info": {
+    "name": "Covoiturage - Reservations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Reservations - Creation COV-15",
+      "description": "Sans variables ni scripts. Adapter manuellement tous les ids. Lire docs/tests-reservations.md. Trajet 1 : PUBLIE, 4 places, points 1 Rabat 0 DH, 2 Casablanca 40 DH, 3 Settat 70 DH, 4 Marrakech 120 DH. Point 5 sur trajet 2. Passagers 1 a 4 existants. Executer refus avant scenario succes ; ne pas relancer le scenario sur un trajet deja reserve.",
+      "item": [
+        {
+          "name": "0 - Preparer les donnees",
+          "item": [
+            {
+              "name": "Voir les passagers - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers",
+                "header": [],
+                "description": "Choisir quatre profils ; creer les profils manquants avec le dossier Passagers. Reporter leurs vrais ids dans les URLs et headers Reservation."
+              }
+            },
+            {
+              "name": "Voir les vehicules du conducteur - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+                "header": [],
+                "description": "Adapter conducteur 1 ; choisir son vehicule de capacite au moins 4."
+              }
+            },
+            {
+              "name": "Publier trajet quatre points - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Adapter conducteur, vehicule et dates futures. Conserver id du trajet et ids des quatre points de la reponse ; les reporter manuellement dans les requetes Reservation. Rejouer cette publication pour creer le second trajet du test de points etrangers.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 4,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-12-01T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-12-01T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2026-12-01T19:00:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-12-01T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "1 - Refus avant reservation",
+          "item": [
+            {
+              "name": "Acteur different - 403",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "Passager 1 existe ; header 2 et chemin 1.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Passager absent - 404",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/999999/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "999999"
+                  }
+                ],
+                "description": "999999 doit etre absent.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Trajet absent - 404",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Passager 1 existe ; trajet 999999 absent.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 999999,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Montee absente - 404",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Trajet 1 PUBLIE ; point 999999 absent.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 999999,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Descente absente - 404",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Trajet 1 PUBLIE ; montee 2 existe ; point 999999 absent.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 999999,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Montee autre trajet - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Point 5 existe et appartient au trajet 2, pas au trajet 1.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 5,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Descente autre trajet - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Point 5 existe et appartient au trajet 2.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 5,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Ordre inverse - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Montee Settat ordre 2, descente Casablanca ordre 1.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 3,\n  \"descenteId\": 2,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Meme point - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Montee et descente identiques.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 2,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Zero place - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Refus DTO avant appel du service.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Places negatives - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Refus DTO avant appel du service.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": -1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Places absentes - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "nombrePlaces null refuse par NotNull.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": null\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Identifiants non positifs - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "IDs 0 ou negatifs refuses par DTO.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 0,\n  \"monteeId\": -1,\n  \"descenteId\": 0,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Header absent - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "Header X-Passager-Id obligatoire.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Header non numerique - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "abc"
+                  }
+                ],
+                "description": "Header doit etre un Long.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Passager non numerique - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/abc/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Id du chemin doit etre un Long.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Places superieures aux quatre disponibles - 409",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Executer avant toute reservation sur trajet 1.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 5\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Champs absents - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Les quatre champs sont obligatoires.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "JSON malforme - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "JSON volontairement incomplet.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"trajetId\":",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "2 - Statuts ANNULE TERMINE (fixtures optionnelles)",
+          "item": [
+            {
+              "name": "Trajet ANNULE - 409",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Optionnel : trajet 3 existe et son statut est ANNULE. Executer seulement si cette fixture existe.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 3,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Trajet TERMINE - 409",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Optionnel : trajet 4 existe et son statut est TERMINE. Executer seulement si cette fixture existe.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 4,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "3 - Scenario a executer dans cet ordre",
+          "item": [
+            {
+              "name": "01 - Settat Marrakech une place 50 DH - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Passager 1 sans CONFIRMEE sur trajet 1. Montant (120-70)*1=50. Statut reservation CONFIRMEE. Trajet reste PUBLIE ; il reste 3 places.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 3,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "02 - Doublon passager 1 - 409",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "Executer immediatement apres 01. Pas de seconde CONFIRMEE pour ce passager.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 3,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "03 - Casablanca Marrakech deux places 160 DH - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/2/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "Passager 2 existe sans CONFIRMEE sur trajet 1. Montant (120-40)*2=160. Il reste 1 place.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "04 - Deux places quand une reste - 409",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/3/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "3"
+                  }
+                ],
+                "description": "Passager 3 existe sans reservation. Il reste seulement 1 place apres 01 et 03.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "05 - Derniere place petit segment 40 DH - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/3/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "3"
+                  }
+                ],
+                "description": "Passager 3 reserve Rabat-Casablanca. Montant 40.00. Cette place compte sur tout le trajet ; trajet devient COMPLET.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 1,\n  \"descenteId\": 2,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "06 - Trajet COMPLET - 409",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/4/reservations",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "4"
+                  }
+                ],
+                "description": "Passager 4 existe. Executer apres 05. Refus avant creation de reservation.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 2,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "07 - Verifier trajet COMPLET - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/1",
+                "header": [],
+                "description": "Attendu statut COMPLET, offeredSeats=4 et remainingSeats=0. La table reservations contient exactement 3 CONFIRMEE, somme nombrePlaces=4. Les points restent ordonnes."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

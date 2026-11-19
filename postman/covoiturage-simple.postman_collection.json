@@ -1,0 +1,962 @@
+{
+  "info": {
+    "name": "Covoiturage - Collection simple",
+    "description": "Collection simple avec les vrais ids du jeu demo local. Les actions se font une seule fois. Faire Reservations avant Annuler un trajet ; suppression utilise une voiture distincte. Scenarios prepares independamment des essais courants. Voir docs/demo/README.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Conducteurs",
+      "item": [
+        {
+          "name": "Creer un conducteur",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/conducteurs",
+            "description": "201. Nouveau profil distinct du jeu demo. Une seule execution, changer email/permis pour recommencer.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Nabil\",\n  \"lastName\": \"El Fadili\",\n  \"email\": \"nabil.elfadili@example.com\",\n  \"phone\": \"0679341826\",\n  \"licenseNumber\": \"MA-205986\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consulter un conducteur",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/conducteurs/1",
+            "description": "200. Hamid deja present."
+          }
+        },
+        {
+          "name": "Lister les conducteurs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/conducteurs",
+            "description": "Attendu : 200. Liste des conducteurs."
+          }
+        },
+        {
+          "name": "Rechercher un conducteur",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/conducteurs/search?keyword=Alami",
+            "description": "200. Recherche Hamid."
+          }
+        },
+        {
+          "name": "Modifier un conducteur",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/conducteurs/1",
+            "description": "200. Modifier Hamid, ses valeurs actuelles sont pre-remplies.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Hamid\",\n  \"lastName\": \"Alami\",\n  \"email\": \"hamid.alami@example.com\",\n  \"phone\": \"0612457890\",\n  \"licenseNumber\": \"MA-458271\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Passagers",
+      "item": [
+        {
+          "name": "Creer un passager",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/passagers",
+            "description": "201. Nouveau profil distinct ; changer email apres une premiere creation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Lina\",\n  \"lastName\": \"Mourad\",\n  \"email\": \"lina.mourad@example.com\",\n  \"phone\": \"0628164937\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consulter un passager",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/passagers/1",
+            "description": "200. Salma deja presente."
+          }
+        },
+        {
+          "name": "Lister les passagers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/passagers",
+            "description": "Attendu : 200. Liste des passagers."
+          }
+        },
+        {
+          "name": "Rechercher un passager",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/passagers/search?email=salma.benali",
+            "description": "200. Recherche Salma."
+          }
+        },
+        {
+          "name": "Modifier un passager",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "1"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "http://localhost:8080/api/passagers/1",
+            "description": "200. Valeurs actuelles de Salma.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Salma\",\n  \"lastName\": \"Benali\",\n  \"email\": \"salma.benali@example.com\",\n  \"phone\": \"0618932476\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicules",
+      "item": [
+        {
+          "name": "Ajouter un vehicule",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "201. Nouvelle voiture, immatriculation distincte ; changer apres premiere creation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Seat\",\n  \"model\": \"Ibiza\",\n  \"registrationNumber\": \"52418-B-6\",\n  \"color\": \"Bleu\",\n  \"capacity\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consulter un vehicule",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/vehicules/1",
+            "header": [],
+            "description": "200. Voiture Hamid."
+          }
+        },
+        {
+          "name": "Lister les vehicules du conducteur",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/vehicules",
+            "header": [],
+            "description": "200. Voitures Hamid."
+          }
+        },
+        {
+          "name": "Modifier un vehicule",
+          "request": {
+            "method": "PUT",
+            "url": "http://localhost:8080/api/vehicules/1",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "200. Valeurs actuelles du vehicule.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Dacia\",\n  \"model\": \"Logan\",\n  \"registrationNumber\": \"48321-A-1\",\n  \"color\": \"Blanc\",\n  \"capacity\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Supprimer un vehicule",
+          "request": {
+            "method": "DELETE",
+            "url": "http://localhost:8080/api/vehicules/6",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "204. Voiture sans trajet, prevue uniquement pour suppression. Une seule fois."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trajets",
+      "item": [
+        {
+          "name": "Publier un trajet",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "201. Nouveau trajet ; dates futures pre-remplies.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-11-22T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-11-22T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2026-11-22T19:15:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-11-22T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consulter un trajet",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "http://localhost:8080/api/trajets/1",
+            "description": "200. Trajet pour essais courants."
+          }
+        },
+        {
+          "name": "Rechercher des trajets",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/trajets/search?departureCity=Casablanca&arrivalCity=Settat&date=2026-11-22&seats=1&page=0&size=10",
+            "header": [],
+            "description": "200. Prix du segment 30 DH pour les trajets demo correspondants."
+          }
+        },
+        {
+          "name": "Terminer un trajet",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/2/terminer",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "204. Trajet distinct dont le depart est passe ; une seule fois."
+          }
+        },
+        {
+          "name": "Annuler un trajet",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/1/annuler",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "204. Annule uniquement le trajet des essais courants. Faire apres les essais Reservations ; ne touche pas aux scenarios."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reservations",
+      "item": [
+        {
+          "name": "Reserver des places",
+          "request": {
+            "method": "POST",
+            "url": "http://localhost:8080/api/passagers/5/reservations",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "5"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "201. Amine reserve sur le trajet courant, hors scenarios. Faire avant annulation du trajet.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trajetId\": 1,\n  \"monteeId\": 3,\n  \"descenteId\": 4,\n  \"nombrePlaces\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consulter les reservations du passager",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/passagers/1/reservations",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "1"
+              }
+            ],
+            "description": "200. Historique Salma."
+          }
+        },
+        {
+          "name": "Consulter les reservations du trajet",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/api/conducteurs/1/trajets/1/reservations",
+            "header": [
+              {
+                "key": "X-Conducteur-Id",
+                "value": "1"
+              }
+            ],
+            "description": "200. Reservations du trajet courant."
+          }
+        },
+        {
+          "name": "Annuler une reservation",
+          "request": {
+            "method": "PATCH",
+            "url": "http://localhost:8080/api/passagers/1/reservations/1/annuler",
+            "header": [
+              {
+                "key": "X-Passager-Id",
+                "value": "1"
+              }
+            ],
+            "description": "204. Reservation Salma du trajet courant, depart a plus de 24h. Faire avant annulation du trajet."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validation brief - 11 scenarios COV-20",
+      "description": "Jeu demo deja insere. Lire docs/demo/README.md. Les ids sont reels. Dossiers 00 a 11 dans l ordre, une seule execution des actions. Les preparations sont des GET. Le scenario 5 utilise une copie deja COMPLET pour disposer de l id Karim ; les scenarios 6/9 utilisent cette copie apres annulation. Pas de variables ni scripts.",
+      "item": [
+        {
+          "name": "00 - Preparation des donnees",
+          "description": "Profils, vehicules et trajet principal deja crees : ces GET montrent leur preparation.",
+          "item": [
+            {
+              "name": "Hamid - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1",
+                "header": [],
+                "description": "200. Donnee demo deja presente."
+              }
+            },
+            {
+              "name": "Omar - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/2",
+                "header": [],
+                "description": "200. Donnee demo deja presente."
+              }
+            },
+            {
+              "name": "Salma - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers/1",
+                "header": [],
+                "description": "200. Donnee demo deja presente."
+              }
+            },
+            {
+              "name": "Karim - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers/2",
+                "header": [],
+                "description": "200. Donnee demo deja presente."
+              }
+            },
+            {
+              "name": "Imane - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers/3",
+                "header": [],
+                "description": "200. Donnee demo deja presente."
+              }
+            },
+            {
+              "name": "Vehicule Hamid - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/vehicules/1",
+                "header": [],
+                "description": "200. Donnee demo deja presente."
+              }
+            },
+            {
+              "name": "Vehicule Omar - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/vehicules/2",
+                "header": [],
+                "description": "200. Donnee demo deja presente."
+              }
+            },
+            {
+              "name": "Trajet principal - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/3",
+                "header": [],
+                "description": "200. Donnee demo deja presente."
+              }
+            }
+          ]
+        },
+        {
+          "name": "01 - Salma reserve Settat vers Marrakech",
+          "description": "T1 doit etre PUBLIE, sans reservation, avec 3 places restantes.",
+          "item": [
+            {
+              "name": "Salma reserve une place - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "201. 50 DH, CONFIRMEE ; trajet principal passe de 3 a 2 places.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 3,\n  \"monteeId\": 11,\n  \"descenteId\": 12,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/3",
+                "header": [],
+                "description": "200. PUBLIE, 2 places apres Salma."
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 - Recherche dans le mauvais sens",
+          "description": "Utiliser la date reelle du depart de T1. Aucun header ni body.",
+          "item": [
+            {
+              "name": "Rechercher Settat vers Casablanca - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/search?departureCity=Settat&arrivalCity=Casablanca&date=2026-11-22&seats=1&page=0&size=10",
+                "header": [],
+                "description": "200. Trajet principal absent : sens inverse."
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 - Karim reserve deux places",
+          "description": "T1 doit avoir encore 2 places disponibles.",
+          "item": [
+            {
+              "name": "Karim reserve Casablanca vers Marrakech - 201",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/2/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "201. 160 DH, deux places, trajet principal devient COMPLET.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 3,\n  \"monteeId\": 10,\n  \"descenteId\": 12,\n  \"nombrePlaces\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/3",
+                "header": [],
+                "description": "200. COMPLET, 0 place."
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 - Imane reserve sur trajet complet",
+          "description": "Executer avant annulation Karim : T1 doit etre COMPLET.",
+          "item": [
+            {
+              "name": "Imane essaie de reserver une place - 409",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/3/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "3"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "409. Trajet principal COMPLET apres scenario 3.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 3,\n  \"monteeId\": 9,\n  \"descenteId\": 12,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/3",
+                "header": [],
+                "description": "200. Toujours COMPLET, 0 place."
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 - Karim annule trois jours avant",
+          "description": "Copie deja COMPLET : Salma 1 place et Karim 2 places. Son id reservation Karim est deja connu ; aucun id a recopier.",
+          "item": [
+            {
+              "name": "Karim annule R2 - 204",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/2/reservations/4/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "204. Copie ScenarioKarim : Karim ANNULEE, Salma CONFIRMEE ; le trajet redevient PUBLIE, 2 places."
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/4",
+                "header": [],
+                "description": "200. PUBLIE, 2 places."
+              }
+            },
+            {
+              "name": "Verifier historique passager - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers/2/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "200. KarimKarim ANNULEE, montant 160 DH conserve."
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 - Montee apres descente",
+          "description": "Executer apres scenario 05 pour que T1 soit PUBLIE ; sinon 409 au lieu du 400 recherche.",
+          "item": [
+            {
+              "name": "Imane monte Marrakech et descend Settat - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/passagers/3/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "3"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "400. Montee Marrakech apres descente Settat.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"trajetId\": 4,\n  \"monteeId\": 16,\n  \"descenteId\": 15,\n  \"nombrePlaces\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/4",
+                "header": [],
+                "description": "200. PUBLIE, 2 places."
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 - Depassement capacite du vehicule",
+          "description": "Le vehicule doit appartenir a Hamid et avoir une capacite de 4. Dates futures et parcours valides.",
+          "item": [
+            {
+              "name": "Hamid propose cinq places - 400",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "400. 5 places > capacite 4.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 1,\n  \"offeredSeats\": 5,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-11-22T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-11-22T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2026-11-22T19:15:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-11-22T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 - Vehicule d un autre conducteur",
+          "description": "Vehicule 2 existe et appartient a Omar ; URL/header restent ceux de Hamid.",
+          "item": [
+            {
+              "name": "Hamid utilise le vehicule de Omar - 403",
+              "request": {
+                "method": "POST",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "description": "403. Vehicule appartient a Omar.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"vehiculeId\": 2,\n  \"offeredSeats\": 3,\n  \"pointsArret\": [\n    {\n      \"city\": \"Rabat\",\n      \"passageTime\": \"2026-11-22T17:00:00\",\n      \"priceFromDeparture\": 0\n    },\n    {\n      \"city\": \"Casablanca\",\n      \"passageTime\": \"2026-11-22T18:15:00\",\n      \"priceFromDeparture\": 40\n    },\n    {\n      \"city\": \"Settat\",\n      \"passageTime\": \"2026-11-22T19:15:00\",\n      \"priceFromDeparture\": 70\n    },\n    {\n      \"city\": \"Marrakech\",\n      \"passageTime\": \"2026-11-22T21:30:00\",\n      \"priceFromDeparture\": 120\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 - Terminer avant depart",
+          "description": "T1 est toujours PUBLIE et son depart est futur. Le brief donne le jour J avant 17:00 ; ce test HTTP verifie la meme condition avant depart, sans attendre le jour J. L heure exacte peut etre verifiee par horloge fixe en test unitaire.",
+          "item": [
+            {
+              "name": "Hamid essaie de terminer T1 - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/4/terminer",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "409. Depart futur."
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/4",
+                "header": [],
+                "description": "200. PUBLIE, 2 places."
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 - Annulation deux heures avant depart",
+          "description": "Trajet proche et reservation Salma deja crees. Le depart etait a maintenant +2h lors de la preparation. Ne pas republier.",
+          "item": [
+            {
+              "name": "Preparation - Trajet proche - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/5",
+                "header": [],
+                "description": "200. Trajet proche deja present ; consulter departureTime."
+              }
+            },
+            {
+              "name": "Preparation - Reservation Salma - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/5/reservations",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "200. Reservation Salma CONFIRMEE, 50 DH."
+              }
+            },
+            {
+              "name": "Salma essaie d annuler R3 - 409",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/passagers/1/reservations/5/annuler",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "409. Delai 24h depasse."
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/5",
+                "header": [],
+                "description": "200. PUBLIE, 2 places ; reservation inchangee."
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 - Annuler trajet et ses deux reservations",
+          "description": "Trajet et ses deux reservations deja prepares : trois lectures avant annulation, puis PATCH. Une seule execution.",
+          "item": [
+            {
+              "name": "Preparation - Trajet complet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/6",
+                "header": [],
+                "description": "200. Trajet COMPLET deja prepare."
+              }
+            },
+            {
+              "name": "Preparation - Historique Salma - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers/1/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "200. Reservation du trajet ScenarioAnnulation deja CONFIRMEE."
+              }
+            },
+            {
+              "name": "Preparation - Historique Karim - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/passagers/2/reservations",
+                "header": [
+                  {
+                    "key": "X-Passager-Id",
+                    "value": "2"
+                  }
+                ],
+                "description": "200. Reservation du trajet ScenarioAnnulation deja CONFIRMEE."
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/6",
+                "header": [],
+                "description": "200. Avant annulation : COMPLET, 0 place."
+              }
+            },
+            {
+              "name": "Hamid annule T3 - 204",
+              "request": {
+                "method": "PATCH",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/6/annuler",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "204. Trajet ANNULE et ses deux reservations ANNULEE. Montants 50/160 DH conserves."
+              }
+            },
+            {
+              "name": "Verifier detail trajet - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/trajets/6",
+                "header": [],
+                "description": "200. Apres annulation : ANNULE, 3 places calculees."
+              }
+            },
+            {
+              "name": "Verifier les deux reservations annulees - 200",
+              "request": {
+                "method": "GET",
+                "url": "http://localhost:8080/api/conducteurs/1/trajets/6/reservations",
+                "header": [
+                  {
+                    "key": "X-Conducteur-Id",
+                    "value": "1"
+                  }
+                ],
+                "description": "200. Les deux reservations ANNULEE, montants 50/160 DH."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
