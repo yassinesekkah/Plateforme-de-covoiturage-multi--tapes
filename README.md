@@ -33,10 +33,10 @@ Les commandes suivantes s'executent dans PowerShell, a la racine du projet. Mave
 ```powershell
 git clone https://github.com/yassinesekkah/Plateforme-de-covoiturage-multi--tapes.git
 cd Plateforme-de-covoiturage-multi--tapes
-git switch develop
+git switch main
 ```
 
-`develop` contient les fonctionnalites integrees. `main` recevra la version de livraison finale.
+`main` contient la version de livraison. `develop` sert a l'integration des changements.
 
 ## Demarrer PostgreSQL
 
