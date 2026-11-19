@@ -4,6 +4,8 @@ Source : PDF `brief-sc-plateforme-de-covoiturage-6afa0328d2bfb347495371.pdf`, se
 
 Ce document presente les donnees, les resultats attendus et le compte rendu de l'execution HTTP des 11 scenarios COV-20, en section 7.
 
+Pour la collection adaptee au jeu de demonstration COV-21, suivre [le guide demo](demo/README.md) : les ids sont reels et les preparations sont des GET. Le scenario 5 utilise une copie deja complete pour eviter de recopier un id de reservation nouvellement cree. Les sections ci-dessous conservent le parcours de reference valide pendant COV-20.
+
 ## 1. Donnees communes
 
 Base des URL : `http://localhost:8080/api`.
@@ -282,9 +284,9 @@ T1/T3 ont ete publies environ trois jours dans le futur, T2 environ deux heures 
 
 Les donnees de test ont ete nettoyees. Les empreintes des lignes des six tables, comparees avant creation et apres nettoyage, sont identiques : aucune ligne preexistante n'a change. Les sequences d'identifiants peuvent avoir avance normalement apres ces creations et suppressions.
 
-## 8. Verification des tests metier existants (COV-66)
+## 8. Historique de verification des tests metier (COV-66)
 
-Les tests des fonctionnalites precedentes ont ete relus pour verifier les regles des onze scenarios. Aucun test supplementaire n'est necessaire pour ces cas deja couverts ; le parcours HTTP COV-20 verifie leur enchainement avec les trois places du brief.
+Pendant COV-20, les tests des fonctionnalites precedentes ont ete relus pour verifier les regles des onze scenarios. Le tableau suivant conserve cette verification historique, avant la simplification des tests dans COV-21. La suite actuelle contient uniquement `TrajetServiceTest` (9 tests) et `ReservationServiceTest` (11 tests), decrits dans le README principal. Les anciens fichiers cites dans le tableau ont ete retires.
 
 | Scenarios | Tests existants qui couvrent les regles |
 | --- | --- |
@@ -299,4 +301,4 @@ Les tests des fonctionnalites precedentes ont ete relus pour verifier les regles
 | 10 : annulation tardive, limite de 24 h | `ReservationCancellationServiceTest.refusesLateOrPastDeparture`, `acceptsExactly24HoursBeforeDeparture`, `refusesOneNanosecondAfterDeadline` |
 | 11 : annulation groupee | `TrajetCancellationServiceTest.cancelsTripAndItsConfirmedReservationsWithoutPassengerDeadline` ; `TrajetCancellationIntegrationTest` verifie aussi conservation, rollback et concurrence sur PostgreSQL |
 
-Derniere execution complete du meme code applicatif : **330 tests, aucun echec ni erreur**, BUILD SUCCESS (`target/cov19-controller-tests.log`). COV-20 ajoute les collections et la documentation ; il ne modifie pas les services ni leurs tests. Les 35 requetes HTTP COV-20 ont ete executees ensuite avec comparaison SQL, comme indique en section 7.
+Execution complete avant simplification : **330 tests, aucun echec ni erreur**, BUILD SUCCESS pendant COV-19. Les 35 requetes HTTP COV-20 ont ete executees ensuite avec comparaison SQL, comme indique en section 7. Apres simplification dans COV-21 : **20 tests unitaires, aucun echec ni erreur**, BUILD SUCCESS. La collection finale adaptee aux ids de demonstration a ete verifiee separement : 59 requetes reussies sur une copie de la base ; voir le guide demo.
