@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soutenance — Covoiturage multi-étapes</title>
+  <style>
+    :root{--ink:#163247;--muted:#5b6f7d;--accent:#087f78;--soft:#eaf5f2;--line:#dce6e9;--scale:1}
+    *{box-sizing:border-box}body{margin:0;background:#dde5e9;color:var(--ink);font-family:Arial,sans-serif}
+    #deck{position:absolute;left:50%;top:calc(50% - 24px);width:1280px;height:720px;transform:translate(-50%,-50%) scale(var(--scale));transform-origin:center}
+    .slide{display:none;position:relative;width:1280px;height:720px;padding:64px 76px;background:#fff;overflow:hidden;flex-direction:column;box-shadow:0 12px 70px #16324722}
+    .slide.active{display:flex}.label{text-transform:uppercase;letter-spacing:3px;font-size:15px;font-weight:700;color:var(--accent);margin-bottom:20px}
+    h1{font-size:66px;line-height:1.1;letter-spacing:-2px;margin:0 0 28px;max-width:1050px}h2{font-size:44px;letter-spacing:-1px;margin:0 0 36px}h3{font-size:25px;margin:0 0 12px}
+    p{font-size:26px;line-height:1.5;margin:0 0 20px}.muted{color:var(--muted)}.lead{font-size:30px;max-width:940px}.accent{color:var(--accent)}
+    .footer{position:absolute;left:76px;right:76px;bottom:32px;display:flex;justify-content:space-between;color:var(--muted);font-size:14px;border-top:1px solid var(--line);padding-top:16px}
+    .cover{background:linear-gradient(115deg,#fff 68%,#eaf5f2 68%)}.cover .label{margin-top:38px}.tag{display:inline-block;align-self:flex-start;background:var(--soft);color:var(--accent);padding:12px 18px;border-radius:8px;font-size:19px;font-weight:700;margin-top:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}.card{padding:25px 28px;background:#f5f8fa;border-radius:10px;border:1px solid var(--line)}.card p{font-size:23px;margin:0}.num{color:var(--accent);font-size:17px;font-weight:700;margin-bottom:12px}
+    .tech{display:grid;grid-template-columns:270px 1fr;gap:0}.tech>div{padding:20px 0;border-bottom:1px solid var(--line);font-size:24px;line-height:1.3}.tech .key{color:var(--accent);font-weight:bold}.tech .value{padding-left:25px}
+    .flow{display:flex;align-items:center;justify-content:space-between;margin:15px 0 42px}.flow .box{background:var(--soft);border:1px solid #c4ded7;border-radius:9px;width:226px;padding:24px 12px;text-align:center;font-size:25px;font-weight:700}.flow small{display:block;font-size:17px;font-weight:normal;color:var(--muted);margin-top:10px}.arrow{font-size:30px;color:var(--accent)}
+    .lines{padding-left:25px;margin:0}.lines li{font-size:25px;line-height:1.5;padding:7px 0}.lines strong{color:var(--accent)}
+    .route{display:flex;align-items:center;justify-content:space-between;background:var(--soft);border-radius:10px;padding:24px 28px;margin-bottom:26px}.stop{text-align:center;font-size:25px;font-weight:bold}.stop small{display:block;font-size:20px;font-weight:normal;color:var(--accent);margin-top:8px}
+    .price-row{display:grid;grid-template-columns:1fr 1fr;gap:24px}.price{border:1px solid var(--line);border-radius:10px;padding:22px 26px}.price p{font-size:22px;margin:0 0 10px}.amount{font-size:37px;font-weight:700;color:var(--accent)}.status{margin-top:23px;font-size:22px;color:var(--muted)}
+    .demo{display:flex;gap:14px;justify-content:space-between;margin:26px 0 42px}.step{flex:1;border-top:4px solid var(--accent);background:#f5f8fa;padding:22px 15px;min-height:125px}.step span{display:block;color:var(--accent);font-size:17px;margin-bottom:16px}.step strong{font-size:24px}.note{font-size:22px;color:var(--muted)}
+    nav{position:fixed;bottom:12px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:18px;font-size:14px;color:var(--ink)}button{border:1px solid #b8c9d2;border-radius:6px;background:#fff;color:var(--ink);padding:9px 15px;cursor:pointer;font:inherit}button:focus-visible{outline:3px solid var(--accent)}
+    @page{size:1280px 720px;margin:0}
+    @media print{body{background:white}#deck{position:static;width:1280px;height:auto;transform:none}.slide,.slide.active{display:flex;box-shadow:none;break-after:page;page-break-after:always;print-color-adjust:exact;-webkit-print-color-adjust:exact}.slide:last-child{break-after:auto;page-break-after:auto}nav{display:none}}
+  </style>
+</head>
+<body>
+<main id="deck">
+  <section class="slide cover active" aria-label="Présentation du projet">
+    <div class="label">Projet individuel · Backend REST</div>
+    <h1>Plateforme de<br>covoiturage <span class="accent">multi-étapes</span></h1>
+    <p class="lead">Publier un trajet avec des arrêts.<br>Réserver une place sur tout ou partie du parcours.</p>
+    <div class="tag">Une API pour les conducteurs et les passagers</div>
+    <div class="footer"><span>Présentation du projet</span><span>01 / 06</span></div>
+  </section>
+  <section class="slide" aria-label="Fonctionnalités">
+    <div class="label">Ce que permet l’application</div><h2>Les fonctionnalités principales</h2>
+    <div class="grid">
+      <article class="card"><div class="num">01 · Profils et véhicules</div><h3>Gérer les informations</h3><p>Créer, consulter et modifier les profils.<br>Gérer les véhicules des conducteurs.</p></article>
+      <article class="card"><div class="num">02 · Trajets</div><h3>Publier et rechercher</h3><p>Définir les arrêts, les heures et les prix.<br>Rechercher entre deux villes du parcours.</p></article>
+      <article class="card"><div class="num">03 · Réservations</div><h3>Réserver des places</h3><p>Calculer le montant automatiquement.<br>Consulter les réservations et l’historique.</p></article>
+      <article class="card"><div class="num">04 · Suivi</div><h3>Annuler ou terminer</h3><p>Annuler une réservation ou un trajet.<br>Terminer un trajet après le départ.</p></article>
+    </div>
+    <div class="footer"><span>Fonctionnalités</span><span>02 / 06</span></div>
+  </section>
+  <section class="slide" aria-label="Technologies">
+    <div class="label">Les outils utilisés</div><h2>Les technologies</h2>
+    <div class="tech">
+      <div class="key">API</div><div class="value">Java 17 · Spring Boot · Maven</div>
+      <div class="key">Base de données</div><div class="value">PostgreSQL · Docker Compose · Spring Data JPA</div>
+      <div class="key">Données et validation</div><div class="value">DTO records · MapStruct · Bean Validation · Lombok</div>
+      <div class="key">Tests et suivi</div><div class="value">JUnit 5 · Mockito · AssertJ · Postman<br>GitHub · Jira</div>
+    </div>
+    <div class="footer"><span>Technologies</span><span>03 / 06</span></div>
+  </section>
+  <section class="slide" aria-label="Architecture">
+    <div class="label">Organisation du code</div><h2>Une architecture en couches</h2>
+    <div class="flow">
+      <div class="box">Controller<small>Requête HTTP</small></div><span class="arrow">→</span>
+      <div class="box">Service<small>Règles métier</small></div><span class="arrow">→</span>
+      <div class="box">Repository<small>Accès aux données</small></div><span class="arrow">→</span>
+      <div class="box">PostgreSQL<small>Stockage</small></div>
+    </div>
+    <ul class="lines">
+      <li><strong>Entity :</strong> représente les données enregistrées en base.</li>
+      <li><strong>DTO :</strong> transporte les données reçues et renvoyées par l’API.</li>
+      <li><strong>Mapper :</strong> convertit les entités et les DTO avec MapStruct.</li>
+    </ul>
+    <div class="footer"><span>Architecture</span><span>04 / 06</span></div>
+  </section>
+  <section class="slide" aria-label="Exemple de réservation">
+    <div class="label">Exemple du brief · 3 places proposées</div><h2>Le calcul du prix et des places</h2>
+    <div class="route">
+      <div class="stop">Rabat<small>0 DH</small></div><span class="arrow">→</span>
+      <div class="stop">Casablanca<small>40 DH</small></div><span class="arrow">→</span>
+      <div class="stop">Settat<small>70 DH</small></div><span class="arrow">→</span>
+      <div class="stop">Marrakech<small>120 DH</small></div>
+    </div>
+    <div class="price-row">
+      <div class="price"><h3>Salma · 1 place</h3><p>Settat → Marrakech</p><div class="amount">(120 − 70) × 1 = 50 DH</div><p class="status">Il reste 2 places. Trajet PUBLIE.</p></div>
+      <div class="price"><h3>Karim · 2 places</h3><p>Casablanca → Marrakech</p><div class="amount">(120 − 40) × 2 = 160 DH</div><p class="status">Il reste 0 place. Trajet COMPLET.</p></div>
+    </div>
+    <p class="note" style="margin-top:25px">Une place réservée est occupée sur tout le trajet, même pour un segment.</p>
+    <div class="footer"><span>Règles métier</span><span>05 / 06</span></div>
+  </section>
+  <section class="slide" aria-label="Validation et démonstration">
+    <div class="label">Passage à la démonstration</div><h2>Vérifier le parcours avec Postman</h2>
+    <div class="demo">
+      <div class="step"><span>01</span><strong>Publier</strong></div>
+      <div class="step"><span>02</span><strong>Rechercher</strong></div>
+      <div class="step"><span>03</span><strong>Réserver</strong></div>
+      <div class="step"><span>04</span><strong>Vérifier le prix</strong></div>
+      <div class="step"><span>05</span><strong>Annuler</strong></div>
+    </div>
+    <ul class="lines">
+      <li><strong>20 tests unitaires</strong> sur les services Trajet et Reservation.</li>
+      <li><strong>11 scénarios du brief</strong> vérifiés avec l’API et PostgreSQL.</li>
+      <li>Contrôles des prix, des places, des statuts et des erreurs.</li>
+    </ul>
+    <div class="footer"><span>Démonstration</span><span>06 / 06</span></div>
+  </section>
+</main>
+<nav aria-label="Navigation de la présentation"><button id="previous" type="button">← Précédent</button><span id="counter" aria-live="polite">1 / 6</span><button id="next" type="button">Suivant →</button><button id="fullscreen" type="button">Plein écran</button></nav>
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let current=Math.max(0,Math.min(slides.length-1,Number(location.hash.slice(1)||1)-1));
+  function show(n){current=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,i)=>s.classList.toggle('active',i===current));document.getElementById('counter').textContent=(current+1)+' / '+slides.length;document.getElementById('previous').disabled=current===0;document.getElementById('next').disabled=current===slides.length-1;history.replaceState(null,'','#'+(current+1));}
+  function resize(){document.documentElement.style.setProperty('--scale',Math.min((innerWidth-24)/1280,(innerHeight-70)/720));}
+  document.getElementById('previous').onclick=()=>show(current-1);
+  document.getElementById('next').onclick=()=>show(current+1);
+  document.getElementById('fullscreen').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen();};
+  document.addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(current+1);}if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(current-1);}if(e.key==='Home')show(0);if(e.key==='End')show(slides.length-1);});
+  addEventListener('resize',resize);show(current);resize();
+</script>
+</body>
+</html>
