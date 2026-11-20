@@ -1,5 +1,6 @@
 package ma.youcode.covoiturage.service;
 
+import ma.youcode.covoiturage.calculator.PlacesRestantesCalculator;
 import ma.youcode.covoiturage.dto.reservation.ReservationCreateRequest;
 import ma.youcode.covoiturage.entity.*;
 import ma.youcode.covoiturage.enums.*;
@@ -7,6 +8,7 @@ import ma.youcode.covoiturage.exception.*;
 import ma.youcode.covoiturage.mapper.ReservationMapper;
 import ma.youcode.covoiturage.repository.*;
 import ma.youcode.covoiturage.service.impl.ReservationServiceImpl;
+import ma.youcode.covoiturage.validation.ReservationValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +42,8 @@ class ReservationServiceTest {
     void preparer() {
         Clock clock = Clock.fixed(maintenant.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
         service = new ReservationServiceImpl(passagerRepository, trajetRepository, pointRepository,
-                reservationRepository, Mappers.getMapper(ReservationMapper.class), conducteurRepository, clock);
+                reservationRepository, Mappers.getMapper(ReservationMapper.class), conducteurRepository,
+                new PlacesRestantesCalculator(reservationRepository), new ReservationValidator(clock), clock);
         passager = new Passager();
         passager.setId(1L);
         trajet = new Trajet();
@@ -92,7 +95,9 @@ class ReservationServiceTest {
         pointsExistants();
         montee.setPriceFromDeparture(new BigDecimal("70.00"));
         when(reservationRepository.save(any())).thenAnswer(call -> call.getArgument(0));
-        assertThat(service.create(1L, 1L, demande(1)).montantTotal()).isEqualByComparingTo("50.00");
+        var response = service.create(1L, 1L, demande(1));
+        assertThat(response.montantTotal()).isEqualByComparingTo("50.00");
+        assertThat(response.dateReservation()).isEqualTo(maintenant);
         assertThat(trajet.getStatus()).isEqualTo(StatutTrajet.PUBLIE);
     }
 

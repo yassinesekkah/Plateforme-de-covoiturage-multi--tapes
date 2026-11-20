@@ -1,5 +1,8 @@
 package ma.youcode.covoiturage.service.impl;
 
+import lombok.RequiredArgsConstructor;
+
+import ma.youcode.covoiturage.calculator.PlacesRestantesCalculator;
 import ma.youcode.covoiturage.dto.reservation.ReservationCreateRequest;
 import ma.youcode.covoiturage.dto.reservation.ReservationResponse;
 import ma.youcode.covoiturage.dto.reservation.ReservationDetailResponse;
@@ -10,15 +13,17 @@ import ma.youcode.covoiturage.exception.*;
 import ma.youcode.covoiturage.mapper.ReservationMapper;
 import ma.youcode.covoiturage.repository.*;
 import ma.youcode.covoiturage.service.ReservationService;
+import ma.youcode.covoiturage.validation.ReservationValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.Clock;
+import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class ReservationServiceImpl implements ReservationService {
     private static final Logger log = LoggerFactory.getLogger(ReservationServiceImpl.class);
     private final PassagerRepository passagerRepository;
@@ -27,81 +32,75 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
     private final ReservationMapper reservationMapper;
     private final ConducteurRepository conducteurRepository;
+    private final PlacesRestantesCalculator placesRestantesCalculator;
+    private final ReservationValidator reservationValidator;
     private final Clock clock;
-
-    public ReservationServiceImpl(PassagerRepository passagerRepository,
-                                  TrajetRepository trajetRepository,
-                                  PointArretRepository pointArretRepository,
-                                  ReservationRepository reservationRepository,
-                                  ReservationMapper reservationMapper,
-                                  ConducteurRepository conducteurRepository,
-                                  Clock clock) {
-        this.passagerRepository = passagerRepository;
-        this.trajetRepository = trajetRepository;
-        this.pointArretRepository = pointArretRepository;
-        this.reservationRepository = reservationRepository;
-        this.reservationMapper = reservationMapper;
-        this.conducteurRepository = conducteurRepository;
-        this.clock = clock;
-    }
 
     @Override
     @Transactional
     public ReservationResponse create(Long passagerId, Long actorId, ReservationCreateRequest request) {
+        // 1. Charger le passager et verifier qu'il reserve pour son propre profil.
         Passager passager = passagerRepository.findById(passagerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Passager introuvable avec l'identifiant " + passagerId));
-        if (!passager.getId().equals(actorId)) {
-            throw new ForbiddenException("Vous ne pouvez reserver que pour votre propre profil");
-        }
+        reservationValidator.validateOwner(passager.getId(), actorId,
+                "Vous ne pouvez reserver que pour votre propre profil");
 
+        // 2. Verrouiller le trajet et verifier son statut et le nombre de places demande.
         // Le verrou reste actif jusqu'au commit ou rollback de cette transaction.
         Trajet trajet = trajetRepository.findByIdForReservation(request.trajetId())
                 .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'identifiant " + request.trajetId()));
-        if (trajet.getStatus() != StatutTrajet.PUBLIE) {
-            throw new BusinessException("Seul un trajet PUBLIE peut etre reserve");
-        }
-        if (request.nombrePlaces() == null || request.nombrePlaces() < 1) {
-            throw new BadRequestException("Il faut reserver au moins une place");
-        }
+        reservationValidator.validateCreation(trajet, request.nombrePlaces());
 
+        // 3. Charger les points et verifier qu'ils appartiennent au trajet, dans le bon ordre.
         PointArret montee = pointArretRepository.findById(request.monteeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Point de montee introuvable"));
         PointArret descente = pointArretRepository.findById(request.descenteId())
                 .orElseThrow(() -> new ResourceNotFoundException("Point de descente introuvable"));
-        if (!montee.getTrajet().getId().equals(trajet.getId())
-                || !descente.getTrajet().getId().equals(trajet.getId())) {
-            throw new BadRequestException("Les deux points doivent appartenir au trajet reserve");
-        }
-        if (montee.getStopOrder() >= descente.getStopOrder()) {
-            throw new BadRequestException("La montee doit preceder la descente");
-        }
-        if (reservationRepository.existsByPassagerIdAndTrajetIdAndStatut(
-                passagerId, trajet.getId(), StatutReservation.CONFIRMEE)) {
-            throw new BusinessException("Vous avez deja une reservation confirmee sur ce trajet");
-        }
+        reservationValidator.validatePoints(trajet, montee, descente);
 
-        int remainingSeats = calculateRemainingSeats(trajet);
-        if (request.nombrePlaces() > remainingSeats) {
-            throw new BusinessException("Le nombre de places disponibles est insuffisant");
+        // 4. Refuser une deuxieme reservation confirmee du meme passager sur ce trajet.
+        reservationValidator.validateNoDuplicate(
+                reservationRepository.existsByPassagerIdAndTrajetIdAndStatut(
+                        passagerId, trajet.getId(), StatutReservation.CONFIRMEE));
+
+        // 5. Calculer les places restantes et verifier qu'elles sont suffisantes.
+        int remainingSeats = placesRestantesCalculator.calculate(trajet);
+        reservationValidator.validateAvailableSeats(request.nombrePlaces(), remainingSeats);
+
+        // 6. Calculer le montant, puis construire et sauvegarder la reservation.
+        BigDecimal montantTotal = calculateAmount(montee, descente, request.nombrePlaces());
+        Reservation reservation = buildReservation(request, passager, trajet, montee, descente, montantTotal);
+        Reservation saved = reservationRepository.save(reservation);
+
+        // 7. Passer le trajet a COMPLET si cette reservation prend les dernieres places.
+        if (remainingSeats - request.nombrePlaces() == 0) {
+            trajet.setStatus(StatutTrajet.COMPLET);
         }
+        log.info("Creation de la reservation {} du passager {} sur le trajet {}", saved.getId(), passagerId, trajet.getId());
+
+        // 8. Convertir la reservation sauvegardee en reponse pour le client.
+        return reservationMapper.toResponse(saved);
+    }
+
+    private BigDecimal calculateAmount(PointArret montee, PointArret descente, Integer nombrePlaces) {
+        // Prix du segment par place, multiplie par le nombre de places reservees.
         BigDecimal prixParPlace = descente.getPriceFromDeparture().subtract(montee.getPriceFromDeparture());
-        BigDecimal montantTotal = prixParPlace.multiply(BigDecimal.valueOf(request.nombrePlaces())).setScale(2);
+        return prixParPlace.multiply(BigDecimal.valueOf(nombrePlaces)).setScale(2);
+    }
 
+    private Reservation buildReservation(ReservationCreateRequest request, Passager passager,
+                                         Trajet trajet, PointArret montee, PointArret descente,
+                                         BigDecimal montantTotal) {
+        // Le mapper copie la demande ; on complete les relations et les valeurs gerees par le serveur.
         Reservation reservation = reservationMapper.toEntity(request);
         reservation.setPassager(passager);
         reservation.setTrajet(trajet);
         reservation.setMontee(montee);
         reservation.setDescente(descente);
         reservation.setMontantTotal(montantTotal);
-        reservation.setDateReservation(LocalDateTime.now());
+        reservation.setDateReservation(LocalDateTime.now(clock));
         reservation.setStatut(StatutReservation.CONFIRMEE);
-        Reservation saved = reservationRepository.save(reservation);
-
-        if (remainingSeats - request.nombrePlaces() == 0) {
-            trajet.setStatus(StatutTrajet.COMPLET);
-        }
-        log.info("Creation de la reservation {} du passager {} sur le trajet {}", saved.getId(), passagerId, trajet.getId());
-        return reservationMapper.toResponse(saved);
+        return reservation;
     }
 
     @Override
@@ -109,7 +108,7 @@ public class ReservationServiceImpl implements ReservationService {
     public int getRemainingSeats(Long trajetId) {
         Trajet trajet = trajetRepository.findById(trajetId)
                 .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable avec l'identifiant " + trajetId));
-        return calculateRemainingSeats(trajet);
+        return placesRestantesCalculator.calculate(trajet);
     }
 
     @Override
@@ -118,9 +117,8 @@ public class ReservationServiceImpl implements ReservationService {
         Passager passager = passagerRepository.findById(passagerId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Passager introuvable avec l'identifiant " + passagerId));
-        if (!passager.getId().equals(actorId)) {
-            throw new ForbiddenException("Vous ne pouvez consulter que vos propres reservations");
-        }
+        reservationValidator.validateOwner(passager.getId(), actorId,
+                "Vous ne pouvez consulter que vos propres reservations");
         return reservationRepository.findHistoryByPassagerId(passagerId)
                 .stream()
                 .map(reservationMapper::toDetailResponse)
@@ -134,15 +132,13 @@ public class ReservationServiceImpl implements ReservationService {
         Conducteur conducteur = conducteurRepository.findById(conducteurId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Conducteur introuvable avec l'identifiant " + conducteurId));
-        if (!conducteur.getId().equals(actorId)) {
-            throw new ForbiddenException("Vous ne pouvez consulter que vos propres trajets");
-        }
+        reservationValidator.validateOwner(conducteur.getId(), actorId,
+                "Vous ne pouvez consulter que vos propres trajets");
         Trajet trajet = trajetRepository.findById(trajetId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Trajet introuvable avec l'identifiant " + trajetId));
-        if (!trajet.getConducteur().getId().equals(conducteurId)) {
-            throw new ForbiddenException("Ce trajet appartient a un autre conducteur");
-        }
+        reservationValidator.validateOwner(trajet.getConducteur().getId(), conducteurId,
+                "Ce trajet appartient a un autre conducteur");
         return reservationRepository.findForConducteurByTrajetId(trajetId, conducteurId)
                 .stream()
                 .map(reservationMapper::toDetailResponse)
@@ -155,9 +151,8 @@ public class ReservationServiceImpl implements ReservationService {
         Passager passager = passagerRepository.findById(passagerId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Passager introuvable avec l'identifiant " + passagerId));
-        if (!passager.getId().equals(actorId)) {
-            throw new ForbiddenException("Vous ne pouvez annuler que vos propres reservations");
-        }
+        reservationValidator.validateOwner(passager.getId(), actorId,
+                "Vous ne pouvez annuler que vos propres reservations");
 
         Long trajetId = reservationRepository.findTrajetIdByReservationId(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -169,24 +164,12 @@ public class ReservationServiceImpl implements ReservationService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Reservation introuvable avec l'identifiant " + reservationId));
 
-        if (!reservation.getPassager().getId().equals(passagerId)) {
-            throw new ForbiddenException("Cette reservation appartient a un autre passager");
-        }
-        if (reservation.getStatut() != StatutReservation.CONFIRMEE) {
-            throw new BusinessException("Cette reservation est deja annulee");
-        }
-        if (trajet.getStatus() != StatutTrajet.PUBLIE && trajet.getStatus() != StatutTrajet.COMPLET) {
-            throw new BusinessException("Un trajet ANNULE ou TERMINE ne permet plus d'annuler une reservation");
-        }
-        LocalDateTime limiteAnnulation = trajet.getDepartureTime().minusHours(24);
-        if (LocalDateTime.now(clock).isAfter(limiteAnnulation)) {
-            throw new BusinessException("L'annulation doit etre effectuee au moins 24 heures avant le depart du trajet");
-        }
+        reservationValidator.validateCancellation(reservation, trajet, passagerId);
 
         reservation.setStatut(StatutReservation.ANNULEE);
         // Envoyer le changement a la base avant de recalculer les places ; ce n'est pas un commit.
         reservationRepository.flush();
-        int remainingSeats = calculateRemainingSeats(trajet);
+        int remainingSeats = placesRestantesCalculator.calculate(trajet);
         if (trajet.getStatus() == StatutTrajet.COMPLET && remainingSeats > 0) {
             trajet.setStatus(StatutTrajet.PUBLIE);
         }
@@ -194,8 +177,4 @@ public class ReservationServiceImpl implements ReservationService {
                 reservationId, passagerId, trajetId);
     }
 
-    private int calculateRemainingSeats(Trajet trajet) {
-        long reservedSeats = reservationRepository.sumPlacesByTrajetIdAndStatut(trajet.getId(), StatutReservation.CONFIRMEE);
-        return Math.toIntExact(trajet.getOfferedSeats() - reservedSeats);
-    }
 }

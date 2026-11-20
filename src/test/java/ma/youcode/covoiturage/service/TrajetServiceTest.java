@@ -1,5 +1,7 @@
 package ma.youcode.covoiturage.service;
 
+import ma.youcode.covoiturage.builder.ParcoursBuilder;
+import ma.youcode.covoiturage.calculator.PlacesRestantesCalculator;
 import ma.youcode.covoiturage.dto.trajet.*;
 import ma.youcode.covoiturage.entity.*;
 import ma.youcode.covoiturage.enums.*;
@@ -7,6 +9,12 @@ import ma.youcode.covoiturage.exception.*;
 import ma.youcode.covoiturage.mapper.*;
 import ma.youcode.covoiturage.repository.*;
 import ma.youcode.covoiturage.service.impl.TrajetServiceImpl;
+import ma.youcode.covoiturage.validation.ParcoursValidator;
+import ma.youcode.covoiturage.validation.TrajetSearchValidator;
+import ma.youcode.covoiturage.validation.rules.FormatPrixRule;
+import ma.youcode.covoiturage.validation.rules.HorairesCroissantsRule;
+import ma.youcode.covoiturage.validation.rules.PrixCroissantsRule;
+import ma.youcode.covoiturage.validation.rules.VillesUniquesRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +49,11 @@ class TrajetServiceTest {
     void preparer() {
         Clock clock = Clock.fixed(maintenant.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
         service = new TrajetServiceImpl(conducteurRepository, vehiculeRepository,
-                trajetRepository, trajetMapper, pointMapper, reservationRepository, clock);
+                trajetRepository, trajetMapper, reservationRepository, clock,
+                new ParcoursValidator(List.of(new VillesUniquesRule(), new FormatPrixRule(),
+                        new HorairesCroissantsRule(clock), new PrixCroissantsRule())),
+                new ParcoursBuilder(pointMapper),
+                new PlacesRestantesCalculator(reservationRepository), new TrajetSearchValidator());
         conducteur = new Conducteur();
         conducteur.setId(1L);
         vehicule = new Vehicule();
@@ -55,9 +67,9 @@ class TrajetServiceTest {
     }
 
     private TrajetCreateRequest publication(int places) {
-        LocalDateTime depart = LocalDateTime.now().plusDays(3);
+        LocalDateTime depart = maintenant.plusDays(3);
         return new TrajetCreateRequest(2L, places, List.of(
-                new PointArretCreateRequest("Rabat", depart, BigDecimal.ZERO),
+                new PointArretCreateRequest(" Rabat ", depart, BigDecimal.ZERO),
                 new PointArretCreateRequest("Marrakech", depart.plusHours(4), new BigDecimal("120.00"))));
     }
 
@@ -91,8 +103,12 @@ class TrajetServiceTest {
         assertThat(trajet.getStatus()).isEqualTo(StatutTrajet.PUBLIE);
         assertThat(trajet.getDepartureCity()).isEqualTo("Rabat");
         assertThat(trajet.getArrivalCity()).isEqualTo("Marrakech");
+        assertThat(trajet.getDepartureTime()).isEqualTo(request.pointsArret().get(0).passageTime());
         assertThat(trajet.getPointsArret()).extracting(PointArret::getStopOrder).containsExactly(0, 1);
-        assertThat(trajet.getPointsArret()).allSatisfy(p -> assertThat(p.getTrajet()).isSameAs(trajet));
+        assertThat(trajet.getPointsArret()).allSatisfy(p -> {
+            assertThat(p.getTrajet()).isSameAs(trajet);
+            assertThat(p.getPriceFromDeparture().scale()).isEqualTo(2);
+        });
         verify(trajetRepository).save(trajet);
     }
 
@@ -115,12 +131,48 @@ class TrajetServiceTest {
     }
 
     @Test
-    void refuserParcoursAvecUnSeulPoint() {
+    void refuserParcoursInvalidesAvecLesMemesMessages() {
         vehiculeExistant();
-        TrajetCreateRequest request = new TrajetCreateRequest(2L, 3,
-                List.of(publication(3).pointsArret().get(0)));
+        PointArretCreateRequest depart = publication(3).pointsArret().get(0);
+        LocalDateTime heure = depart.passageTime();
+        verifierParcoursRefuse(List.of(depart), "Le trajet doit contenir au moins deux points d'arret");
+        // Ville repetee prioritaire sur prix negatif et heure invalide.
+        verifierParcoursRefuse(List.of(depart,
+                new PointArretCreateRequest("rabat", heure.minusHours(1), new BigDecimal("-1"))),
+                "Une ville ne peut pas apparaitre deux fois sur le parcours");
+        verifierParcoursRefuse(List.of(depart,
+                new PointArretCreateRequest("Casa", heure.minusHours(1), new BigDecimal("-1"))),
+                "Le prix doit etre positif ou nul et accepte au maximum deux decimales et dix chiffres entiers");
+        verifierParcoursRefuse(List.of(depart,
+                new PointArretCreateRequest("Casa", heure.minusHours(1), BigDecimal.ZERO)),
+                "Les heures de passage doivent etre strictement croissantes");
+        verifierParcoursRefuse(List.of(depart,
+                new PointArretCreateRequest("Casa", heure.plusHours(1), BigDecimal.ZERO)),
+                "Les prix depuis le depart doivent etre strictement croissants");
+        verifierParcoursRefuse(List.of(
+                new PointArretCreateRequest("Rabat", maintenant.minusDays(1), BigDecimal.ONE),
+                new PointArretCreateRequest("Casa", heure, new BigDecimal("40"))),
+                "Le depart doit etre dans le futur");
+        verifierParcoursRefuse(List.of(
+                new PointArretCreateRequest("Rabat", maintenant, BigDecimal.ZERO),
+                new PointArretCreateRequest("Casa", heure, new BigDecimal("40"))),
+                "Le depart doit etre dans le futur");
+        verifierParcoursRefuse(List.of(
+                new PointArretCreateRequest("Rabat", heure, BigDecimal.ONE),
+                new PointArretCreateRequest("Casa", heure.plusHours(1), new BigDecimal("40"))),
+                "Le prix du premier point doit etre egal a zero");
+        verifierParcoursRefuse(java.util.Arrays.asList(depart,
+                new PointArretCreateRequest("Casa", heure.minusHours(1), BigDecimal.ZERO), null),
+                "Les heures de passage doivent etre strictement croissantes");
+        verifierParcoursRefuse(java.util.Arrays.asList(depart, null),
+                "Chaque point doit contenir une ville, une date et un prix");
+    }
+
+    private void verifierParcoursRefuse(List<PointArretCreateRequest> points, String message) {
+        TrajetCreateRequest request = new TrajetCreateRequest(2L, 3, points);
         assertThatThrownBy(() -> service.create(1L, 1L, request))
-                .isInstanceOf(BadRequestException.class);
+                .isInstanceOf(BadRequestException.class).hasMessage(message);
+        verify(trajetRepository, never()).save(any());
     }
 
     @Test
