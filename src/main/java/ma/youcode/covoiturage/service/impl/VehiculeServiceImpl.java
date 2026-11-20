@@ -1,5 +1,7 @@
 package ma.youcode.covoiturage.service.impl;
 
+import lombok.RequiredArgsConstructor;
+
 import ma.youcode.covoiturage.dto.vehicule.*;
 import ma.youcode.covoiturage.entity.Conducteur;
 import ma.youcode.covoiturage.entity.Vehicule;
@@ -19,22 +21,13 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class VehiculeServiceImpl implements VehiculeService {
     private static final Logger log = LoggerFactory.getLogger(VehiculeServiceImpl.class);
     private final VehiculeRepository vehiculeRepository;
     private final ConducteurRepository conducteurRepository;
     private final VehiculeMapper vehiculeMapper;
     private final TrajetRepository trajetRepository;
-
-    public VehiculeServiceImpl(VehiculeRepository vehiculeRepository,
-                               ConducteurRepository conducteurRepository,
-                               VehiculeMapper vehiculeMapper,
-                               TrajetRepository trajetRepository) {
-        this.vehiculeRepository = vehiculeRepository;
-        this.conducteurRepository = conducteurRepository;
-        this.vehiculeMapper = vehiculeMapper;
-        this.trajetRepository = trajetRepository;
-    }
 
     @Override
     @Transactional

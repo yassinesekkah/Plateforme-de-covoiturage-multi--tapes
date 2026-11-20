@@ -1,5 +1,7 @@
 package ma.youcode.covoiturage.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import jakarta.validation.Valid;
 import ma.youcode.covoiturage.dto.reservation.ReservationCreateRequest;
 import ma.youcode.covoiturage.dto.reservation.ReservationResponse;
@@ -12,12 +14,9 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/passagers/{passagerId}/reservations")
+@RequiredArgsConstructor
 public class ReservationController {
     private final ReservationService reservationService;
-
-    public ReservationController(ReservationService reservationService) {
-        this.reservationService = reservationService;
-    }
 
     @PostMapping
     public ResponseEntity<ReservationResponse> create(

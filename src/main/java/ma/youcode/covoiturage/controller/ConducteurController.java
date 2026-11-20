@@ -1,5 +1,7 @@
 package ma.youcode.covoiturage.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import jakarta.validation.Valid;
 import ma.youcode.covoiturage.dto.conducteur.ConducteurCreateRequest;
 import ma.youcode.covoiturage.dto.conducteur.ConducteurResponse;
@@ -13,13 +15,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/conducteurs")
+@RequiredArgsConstructor
 public class ConducteurController {
 
     private final ConducteurService conducteurService;
-
-    public ConducteurController(ConducteurService conducteurService) {
-        this.conducteurService = conducteurService;
-    }
 
     @PostMapping
     public ResponseEntity<ConducteurResponse> create(

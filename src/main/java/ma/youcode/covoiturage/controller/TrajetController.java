@@ -1,5 +1,7 @@
 package ma.youcode.covoiturage.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import jakarta.validation.Valid;
 import ma.youcode.covoiturage.dto.trajet.TrajetCreateRequest;
 import ma.youcode.covoiturage.dto.trajet.TrajetResponse;
@@ -21,13 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class TrajetController {
 
     private final TrajetService trajetService;
-
-    public TrajetController(TrajetService trajetService) {
-        this.trajetService = trajetService;
-    }
 
     @PostMapping("/conducteurs/{conducteurId}/trajets")
     public ResponseEntity<TrajetResponse> create(

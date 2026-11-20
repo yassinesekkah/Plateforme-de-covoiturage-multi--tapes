@@ -1,5 +1,7 @@
 package ma.youcode.covoiturage.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import jakarta.validation.Valid;
 import ma.youcode.covoiturage.dto.vehicule.*;
 import ma.youcode.covoiturage.service.VehiculeService;
@@ -10,12 +12,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class VehiculeController {
     private final VehiculeService vehiculeService;
-
-    public VehiculeController(VehiculeService vehiculeService) {
-        this.vehiculeService = vehiculeService;
-    }
 
     @PostMapping("/conducteurs/{conducteurId}/vehicules")
     public ResponseEntity<VehiculeResponse> create(

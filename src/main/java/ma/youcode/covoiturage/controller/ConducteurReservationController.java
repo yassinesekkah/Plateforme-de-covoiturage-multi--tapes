@@ -1,5 +1,7 @@
 package ma.youcode.covoiturage.controller;
 
+import lombok.RequiredArgsConstructor;
+
 import ma.youcode.covoiturage.dto.reservation.ReservationDetailResponse;
 import ma.youcode.covoiturage.service.ReservationService;
 import org.springframework.http.ResponseEntity;
@@ -8,12 +10,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/conducteurs/{conducteurId}/trajets/{trajetId}/reservations")
+@RequiredArgsConstructor
 public class ConducteurReservationController {
     private final ReservationService reservationService;
-
-    public ConducteurReservationController(ReservationService reservationService) {
-        this.reservationService = reservationService;
-    }
 
     @GetMapping
     public ResponseEntity<List<ReservationDetailResponse>> getByTrajet(

@@ -1,5 +1,7 @@
 package ma.youcode.covoiturage.service.impl;
 
+import lombok.RequiredArgsConstructor;
+
 import ma.youcode.covoiturage.dto.conducteur.ConducteurCreateRequest;
 import ma.youcode.covoiturage.dto.conducteur.ConducteurResponse;
 import ma.youcode.covoiturage.dto.conducteur.ConducteurUpdateRequest;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ConducteurServiceImpl implements ConducteurService {
 
     private static final Logger log =
@@ -26,14 +29,6 @@ public class ConducteurServiceImpl implements ConducteurService {
 
     private final ConducteurRepository conducteurRepository;
     private final ConducteurMapper conducteurMapper;
-
-    public ConducteurServiceImpl(
-            ConducteurRepository conducteurRepository,
-            ConducteurMapper conducteurMapper) {
-
-        this.conducteurRepository = conducteurRepository;
-        this.conducteurMapper = conducteurMapper;
-    }
 
     @Override
     @Transactional
